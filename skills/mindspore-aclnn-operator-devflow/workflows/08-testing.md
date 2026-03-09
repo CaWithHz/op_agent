@@ -187,6 +187,13 @@ Python ST（OpInfo 注册）：
 
 ---
 
+## 常见问题
+
+1. **Python ST 写成独立测试文件**：在 `tests/st/` 下新建了 `test_xxx.py` 独立脚本。
+   → 新增算子的 ST **必须**通过在 `op_database.py` 中注册 OpInfo 完成，
+   不允许新建独立测试文件（旧框架写法，新增算子不接受）。
+   详见 `workflows/08-testing.md` Step 2。
+
 ## 下一步
 
 测试完成后，进入 **[Workflow 9: 文档](./09-docs.md)**

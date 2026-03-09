@@ -79,6 +79,13 @@ python mindspore/ops/op_def/gen_ops.py
 
 ---
 
+## 注意事项
+- **YAML/代码生成**：缺 `py_method`、keys 结构不符会导致 `gen_ops.py` 报错。
+- **前后向拆分**：前向/反向、PyBoost/KBK 通常都要分文件，注册也各自独立。
+- **Windows 编码**：英文 YAML 文档避免夹杂中文（可能触发编码问题）；中文放 RST。
+
+---
+
 ## 下一步
 
 代码生成完成后，进入 **[Workflow 3: GeneralInfer](./03-general-infer.md)**

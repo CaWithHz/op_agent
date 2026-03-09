@@ -111,6 +111,14 @@
 
 ---
 
+## 常见问题
+
+1. **bprop 标量 unknown 直接报错退出**：在 `ContainsValueAny()` 为 true 时
+   用 `MS_EXCEPTION` 抛异常而非构建运行时分支。
+   → 必须用 `ib->Conditional(cond, true_branch, false_branch)` 处理。
+   编译期值已知时走 C++ if/else 分支；unknown 时走 `Conditional` 运行时分支。
+   参考 `ReduceStd` bprop 的写法。详见 `workflows/06-bprop.md` Step 5。
+
 ## 下一步
 
 BPROP 完成后，进入 **[Workflow 7: 导出与占位](./07-export.md)**
