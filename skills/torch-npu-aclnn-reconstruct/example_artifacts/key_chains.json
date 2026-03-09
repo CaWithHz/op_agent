@@ -1,0 +1,127 @@
+[
+  {
+    "operator": "acos",
+    "status": "ok",
+    "front_signatures": [
+      "acos(Tensor self) -> Tensor",
+      "acos.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)",
+      "acos_(Tensor(a!) self) -> Tensor(a!)"
+    ],
+    "forward_paths": [
+      {
+        "aclnn_api": "aclnnAcos",
+        "path_source": "config_fallback",
+        "conditions": [
+          "yaml_fallback: gen_opapi.exec via acos"
+        ],
+        "dispatch_note": "logic_preprocessed"
+      },
+      {
+        "aclnn_api": "aclnnAcos",
+        "path_source": "config_fallback",
+        "conditions": [
+          "yaml_fallback: gen_opapi.exec via acos.out"
+        ],
+        "dispatch_note": "logic_preprocessed"
+      },
+      {
+        "aclnn_api": "aclnnInplaceAcos",
+        "path_source": "config_fallback",
+        "conditions": [
+          "yaml_fallback: gen_opapi.exec via acos_"
+        ],
+        "dispatch_note": "logic_preprocessed"
+      }
+    ],
+    "dispatch_summary": [
+      {
+        "aclnn_api": "aclnnAcos",
+        "dispatch_shape": "logic_preprocessed",
+        "has_strict_direct": false,
+        "path_count": 2
+      },
+      {
+        "aclnn_api": "aclnnInplaceAcos",
+        "dispatch_shape": "logic_preprocessed",
+        "has_strict_direct": false,
+        "path_count": 1
+      }
+    ],
+    "aclnn_mapping_catalog": [
+      "aclnnAcos",
+      "aclnnInplaceAcos"
+    ],
+    "aclnn_gap_suspects": [],
+    "has_backward": false,
+    "backward_match": "none",
+    "backward_bindings": []
+  },
+  {
+    "operator": "add",
+    "status": "ok",
+    "front_signatures": [
+      "add.Scalar(Tensor self, Scalar other, Scalar alpha=1) -> Tensor",
+      "add.Tensor(Tensor self, Tensor other, *, Scalar alpha=1) -> Tensor",
+      "add.out(Tensor self, Tensor other, *, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)",
+      "add_.Scalar(Tensor(a!) self, Scalar other, Scalar alpha=1) -> Tensor(a!)",
+      "add_.Tensor(Tensor(a!) self, Tensor other, *, Scalar alpha=1) -> Tensor(a!)"
+    ],
+    "forward_paths": [
+      {
+        "aclnn_api": "aclnnAdd",
+        "path_source": "lsp",
+        "conditions": [
+          "overload(other: Tensor)",
+          "if (other.dim() == 0 && !torch_npu::utils::is_npu(other)) {"
+        ],
+        "dispatch_note": "logic_preprocessed"
+      },
+      {
+        "aclnn_api": "aclnnAdds",
+        "path_source": "lsp",
+        "conditions": [
+          "overload(other: Tensor)",
+          "if (other.dim() == 0 && !torch_npu::utils::is_npu(other)) {"
+        ],
+        "dispatch_note": "logic_preprocessed"
+      },
+      {
+        "aclnn_api": "aclnnAdds",
+        "path_source": "lsp",
+        "conditions": [
+          "overload(other: Scalar)"
+        ],
+        "dispatch_note": "strict_direct"
+      }
+    ],
+    "dispatch_summary": [
+      {
+        "aclnn_api": "aclnnAdd",
+        "dispatch_shape": "logic_preprocessed",
+        "has_strict_direct": false,
+        "path_count": 1
+      },
+      {
+        "aclnn_api": "aclnnAdds",
+        "dispatch_shape": "mixed",
+        "has_strict_direct": true,
+        "path_count": 2
+      }
+    ],
+    "aclnn_mapping_catalog": [
+      "aclnnAdd",
+      "aclnnAddV3",
+      "aclnnAdds",
+      "aclnnInplaceAdd",
+      "aclnnInplaceAdds"
+    ],
+    "aclnn_gap_suspects": [
+      "aclnnAddV3",
+      "aclnnInplaceAdd",
+      "aclnnInplaceAdds"
+    ],
+    "has_backward": false,
+    "backward_match": "none",
+    "backward_bindings": []
+  }
+]

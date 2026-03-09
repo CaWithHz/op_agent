@@ -12,7 +12,7 @@ This skill outputs top-op downstack tree chains to ACLNN with chain conditions.
 Reconstruct `top-op -> aclnn` chains and infer path conditions based on lsp server. It use `clangd` to call hierarchy and infer simple path conditions from nearby `if/switch/case` snippets.
 
 ```bash
-RUN_DIR="$PWD/workspace/runs/run-001/reconstruct-chains"
+RUN_DIR="$PWD/runtime/artifacts/runs/run-001/torch-npu-aclnn-reconstruct"
 python3 skills/torch-npu-aclnn-reconstruct/scripts/run_torch_npu_chain.py \
   --top-ops add,div \
   --out-dir "$RUN_DIR"

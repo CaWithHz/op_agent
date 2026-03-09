@@ -113,7 +113,7 @@ def resolve_paths(args: argparse.Namespace, repo_root: Path) -> tuple[Path, Path
         out_dir = args.out_dir.resolve()
     else:
         run_id = time.strftime("run-%Y%m%d-%H%M%S")
-        out_dir = (repo_root / "workspace" / "runs" / run_id / "reconstruct-chains").resolve()
+        out_dir = (repo_root / "runtime" / "artifacts" / "runs" / run_id / "torch-npu-aclnn-reconstruct").resolve()
 
     return workspace, op_root, out_dir
 
