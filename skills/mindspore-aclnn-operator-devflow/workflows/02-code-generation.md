@@ -2,7 +2,7 @@
 
 ## 目标
 
-运行 `gen_ops.py`，基于 YAML 生成算子代码。**gen_ops.py 在两条路径下作用不同：**
+运行 `mindspore/python/mindspore/ops_generate/gen_ops.py`，基于 YAML 生成算子代码。**gen_ops.py 在两条路径下作用不同：**
 - **路径 1（自动生成）**：生成完整的 PyBoost/KBK 调用代码 + 注册代码 + Python 接口包装
 - **路径 2（Customize）**：生成包装代码（调用你手写的 Customize 类）+ Python 接口包装
 

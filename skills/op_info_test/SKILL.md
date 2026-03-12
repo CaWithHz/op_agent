@@ -5,6 +5,8 @@ description: Generate and validate MindSpore Python ST op_info tests end-to-end 
 
 执行 op_info 测试端到端闭环，优先直接落地，不在中途停下提问；仅在权限受限、关键信息缺失且无法合理推断时提问。
 
+> `reference.md`等共享文档保存在`../_shared/`路径下。
+
 ## 快速路由
 
 - 指令包含 `smoketest` / `冒烟`：直接执行 [workflow/smoke.md](workflow/smoke.md)。
