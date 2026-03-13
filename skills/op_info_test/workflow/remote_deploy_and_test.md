@@ -7,6 +7,12 @@
 
 目标是通过统一 API 完成“客户端发起 + 服务端执行”的流程，避免人工登录服务端逐步操作。
 
+本流程采用“两阶段验证”：
+
+1. 先执行常规功能测试。
+2. 常规功能测试 `status=success` 后，必须对同一测试命令追加 `--count=50` 再执行一次稳定性测试。
+3. 仅当稳定性测试也通过时，远端闭环才算结束。
+
 <a id="remote-deploy-roles"></a>
 ## 背景与角色
 
@@ -62,6 +68,19 @@ python .agents/skills/op_info_test/scripts/remote_runner_client.py \
 
 记录返回的 `job_id`。
 
+若当前轮是稳定性测试，则保持分支、仓库、超时参数不变，仅对原始 `--test-cmd` 追加 `--count=50`。示例：
+
+```bash
+cd $MINDSPORE_ROOT
+python .agents/skills/op_info_test/scripts/remote_runner_client.py \
+  --server http://<server_ip>:18080 \
+  submit \
+  --repo <mindspore_root> \
+  --branch <your_branch> \
+  --test-cmd "pytest tests/st/ops/op_info_tests/*.py -q --maxfail=1 --tb=short --count=50" \
+  --timeout-sec 3600
+```
+
 <a id="remote-deploy-wait-job"></a>
 ### 步骤 2：等待任务结束
 
@@ -114,9 +133,12 @@ python .agents/skills/op_info_test/scripts/remote_runner_client.py \
 <a id="remote-deploy-next-round"></a>
 ### 步骤 4：按结果进入下一轮
 
-1. `status=success`：闭环结束。
-2. `error_type=testcase`：按 `failed_cases/top_traceback` 修正用例，重新执行步骤 1 到步骤 4。
-3. `error_type=infra`：停止自动改用例，先处理环境问题。
+1. 常规功能测试 `status=success`：不要结束；立即对同一测试范围追加 `--count=50` 发起稳定性测试，然后重新执行步骤 1 到步骤 4。
+2. 稳定性测试 `status=success`：闭环结束。
+3. 任一阶段 `error_type=testcase`：按 `failed_cases/top_traceback` 分析失败原因。
+4. 若判定为用例问题：修正用例，重新执行步骤 1 到步骤 4。
+5. 若判定不是用例问题：记录分析结论和证据，不要伪造用例修复。
+6. `error_type=infra`：停止自动改用例，先处理环境问题。
 
 <a id="remote-deploy-optional-actions"></a>
 ## 3. 可选操作

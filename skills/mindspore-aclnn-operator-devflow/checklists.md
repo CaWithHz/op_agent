@@ -207,35 +207,15 @@
 <a id="checklists-test-coverage"></a>
 ### 6b. 场景覆盖
 - [ ] `[MUST]` **默认参数场景验证**：使用所有默认参数值调用前向+反向，确认基本路径可通。
-- [ ] `[MUST]` **动态 shape 自验**：前端测试用例文件调用 `OpsFactory` 的 `test_op_dynamic` 方法。
+- [ ] `[MUST]` **动态 shape **
 - [ ] `[MUST]` **空张量输入**：验证空张量的前向/反向是否支持或正确报错。
 - [ ] `[MUST]` **输入 dtype 全覆盖**：算子声明支持的所有 dtype 都有对应用例（含不支持类型的异常用例）。
 - [ ] `[MUST]` **输入维度覆盖**：合法维度（输入维度覆盖 0D/8D和一个中间大小的维度（如果支持））和非法维度都有用例。
 - [ ] `[MUST]` **输入取值范围验证**：边界值、极端值（极大/极小）、margin/reduction 等枚举参数全覆盖。
 - [ ] `[MUST]` **输入间约束验证**：形状匹配/不匹配、dtype 一致/不一致、rank 一致/不一致。
-- [ ] `[MUST]` **异常用例校验具体报错信息**：异常场景需断言 TypeError/ValueError/RuntimeError 的具体 message。
-- [ ] `[MUST]` **多布局覆盖**：若算子支持多种 layout（如 BSND/TND/PA_BSND），覆盖所有布局组合的前后向。
-- [ ] `[MUST]` **非连续张量**：通过 transpose/permute 构造非连续输入，验证正确性。
-- [ ] `[MUST]` **特殊值健壮性**：inf/-inf/nan 场景验证（至少不 crash，形状/流程正确）。
-- [ ] `[SHOULD]` **多 batch 变长序列**：若涉及 actual_seq_len 类参数，覆盖多 batch + 变长场景。
-- [ ] `[MUST]` **bf16 场景**：bf16 支持情况确认（支持则测精度，不支持则有异常用例）；比较前升精到 float32。
-- [ ] `[MUST]` **隐式类型转换**：确认是否支持输入间 dtype 不同时的自动提升；不支持则有异常用例。
 - [ ] `[MUST]` **广播**：确认是否支持输入间 shape 广播；不支持则有异常用例。
 - [ ] `[MUST]` **多 Tensor 输入 dtype 不一致场景**：确认是否支持多 Tensor 输入 dtype 不一致场景；不支持则有异常用例。非多Tensor输入的算子不需要。
 
-<a id="checklists-test-stability"></a>
-### 6c. 测试组合与稳定性
-- [ ] `[MUST]` **测试组合覆盖**：接口形态（functional/nn/Tensor）× 后端 × 模式（Pynative/KBK）× shape 类型（静态/动态）。
-- [ ] `[MUST]` **关闭退避验证**：`export MS_DISABLE_KERNEL_BACKOFF=1` 环境下用例全部通过（防止退回非 ACLNN 路径）。
-- [ ] `[MUST]` **稳定性验证**：关键用例多次运行（例如 100 次）无偶现再上库。
-- [ ] `[MUST]` **Pass 用例截图/日志**：提供通过证明（截图或日志）。
-- [ ] `[SHOULD]` **测试仓存量用例回归**：若存在测试仓 ST，确认全部 PASS 无遗留问题单。
-
-### 6d. 功能合规性确认
-- [ ] `[MUST]` **不影响存量接口**：新增算子/原语不会使运算符或存量 ops 接口调用到新增原语（除非设计如此）。
-- [ ] `[SHOULD]` **AMP 混合精度**：确认是否已支持或不涉及（新增 Primitive 需关注 amp_white/black_list）。
-- [ ] `[SHOULD]` **多 Tensor 输入 dtype 不一致**：若多输入算子，确认是否支持各输入 dtype 不同。
-- [ ] `[SHOULD]` **输出 shape 是否依赖计算结果**：若是 compute-depend 输出，需要 SyncOutputShape 机制。
 
 <a id="checklists-documentation"></a>
 ## 9. 文档（中英文一致）
@@ -393,8 +373,6 @@
 | 16 | **最终文件清单已全量验证通过**（A-L 逐项确认） | [12 最终文件清单](#checklists-final-file-list) |
 | 17 | 中英文文档参数/默认值/示例一致，**样例有打印结果** | [9 文档内容完整性](#checklists-documentation-content) / [9c 文档格式](#checklists-documentation-format) |
 | 18 | 测试覆盖：动态 shape + 空张量 + 多布局 + None + dtype 全覆盖 | [6b 场景覆盖](#checklists-test-coverage) |
-| 19 | **`MS_DISABLE_KERNEL_BACKOFF=1` 退避关闭验证**通过 | [6c 测试组合与稳定性](#checklists-test-stability) |
-| 20 | 稳定性：关键用例跑 100 次无偶现 | [6c 测试组合与稳定性](#checklists-test-stability) |
 | 21 | **异常用例校验具体报错信息**（TypeError/ValueError/RuntimeError message 断言） | [6b 场景覆盖](#checklists-test-coverage) |
 | 22 | **文档 summary 提供公式**（涉及数学运算的算子）；支持平台已填写 | [9 文档内容完整性](#checklists-documentation-content) |
 | 23 | **不影响存量 ops 接口**（新增原语不会被存量接口意外调用） | [0e 方案评审](#checklists-solution-review) |

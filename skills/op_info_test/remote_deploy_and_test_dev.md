@@ -118,10 +118,16 @@
 
 状态一致性要求：
 
-1. `status=success` 时：`failed_cases=[]`、`error_type=""`、`top_traceback=""`。
+1. 单次任务 `status=success` 时：`failed_cases=[]`、`error_type=""`、`top_traceback=""`。
 2. `status=failed` 且属于测试失败时：`error_type=testcase`。
 3. `status=failed` 且属于环境/部署/依赖等失败时：`error_type=infra`。
 4. `status=timeout` 或 `status=canceled` 时：`error_type=infra`。
+
+闭环补充要求：
+
+1. runner 保持单次 job 语义，不在服务端隐式串联第二次测试。
+2. skill 闭环层在首轮功能测试 `status=success` 后，必须基于相同 `payload.test_cmd` 追加 `--count=50` 再提交一个稳定性 job。
+3. 仅当稳定性 job 也 `status=success` 时，整体验证才算完成。
 
 模板：
 

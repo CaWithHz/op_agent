@@ -737,8 +737,6 @@ def classify_error_type(log_path: Path, junit_path: Path) -> str:
         "segmentation fault",
         "internal error",
         "device not found",
-        "npu",
-        "cuda",
         "killed",
     ]
     if any(pat in text for pat in infra_patterns):

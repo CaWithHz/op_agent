@@ -23,7 +23,10 @@ description: Generate and validate MindSpore Python ST op_info tests end-to-end 
 5. `git push` 当前分支。
 6. 按 [workflow/remote_deploy_and_test.md](workflow/remote_deploy_and_test.md) 执行远端部署与测试。
 7. 根据远端结果循环处理：
-   - `error_type=testcase`：修复用例并重复步骤 3-6，直到通过。
+   - 功能测试 `status=success` 后，不直接结束；基于当前测试命令追加 `--count=50` 发起稳定性测试。
+   - 稳定性测试 `status=success`：闭环通过，进入步骤 8。
+   - 稳定性测试失败且 `error_type=testcase`：分析失败原因，若为用例问题则修复用例并重复步骤 3-6；若非用例问题则记录结论与依据。
+   - 其他阶段 `error_type=testcase`：修复用例并重复步骤 3-6，直到通过。
    - `error_type=infra`：停止自动改用例，转环境排障并记录阻塞点。
 8. 远端通过后，移除临时 patch 提交并整理历史（保留干净的用例提交），再 `git push`。
 9. 在当前工作目录生成 `分支名.md` 总结文档（不加入 git）：
@@ -32,15 +35,17 @@ description: Generate and validate MindSpore Python ST op_info tests end-to-end 
    - 未覆盖场景及原因。
    - 远端任务与结果摘要。
 
+
 <a id="op-info-test-done-criteria"></a>
 ## 完成判定
 
 仅在以下条件全部满足时判定闭环完成：
 
 1. 生成用例覆盖[workflow/op_info_generation.md]中所要求的全部场景。，除非是信息缺失等无法解决原因或者满足文档中省略条件，否则不允许有缺失场景。
-2. 远端任务 `status=success`。
-3. `summary.json` 的 `failed_cases` 为空。
-4. 不存在未处理的 `error_type=testcase`。
+2. 首轮功能测试远端任务 `status=success`。
+3. 基于同一测试范围追加 `--count=50` 的稳定性测试远端任务 `status=success`。
+4. 最终成功任务的 `summary.json` 的 `failed_cases` 为空。
+5. 不存在未处理的 `error_type=testcase`。
 
 <a id="op-info-test-constraints"></a>
 ## 执行约束
@@ -49,3 +54,4 @@ description: Generate and validate MindSpore Python ST op_info tests end-to-end 
 - 不改动与目标接口无关的测试内容。
 - 每次重跑都先确认临时 patch 状态与提交历史符合预期。
 - 输出总结文档时明确写出“已覆盖/未覆盖/阻塞原因”，避免模糊表述。
+- 对于远端用例执行失败导致的用例未覆盖，在输出总结文档中需包含执行报错信息。
