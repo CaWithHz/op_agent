@@ -1,6 +1,6 @@
 ---
 name: aclnn_full_process
-description: invoke skills including mindspore-aclnn-opeartor-devflow, op_info_test to finish the aclnn-op adapter job end-to-end
+description: invoke this skill only when it's mentioned directly.
 ---
 
 执行aclnn接入端到端闭环，优先直接落地，不在中途停下提问；仅在权限受限、关键信息缺失且无法合理推断时提问。
