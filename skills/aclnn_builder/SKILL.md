@@ -1,5 +1,5 @@
 ---
-name: mindspore-aclnn-operator-devflow
+name: aclnn_builder
 description: Guides end-to-end ACLNN custom operator development and adaptation in MindSpore (PyBoost/Pynative + KBK/Graph paths), including YAML definitions, code generation, GeneralInfer, kernel registration, bprop wiring, tests (UT/ST), and docs. Use when the user mentions ACLNN, Ascend, 算子适配/算子开发, PyBoost, KBK, op_def YAML, gen_ops.py, bprop, or Ascend operator adaptation tasks.
 ---
 
