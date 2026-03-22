@@ -2,7 +2,6 @@
 
 > **Purpose**: record the ACLNN call chain of the PTA interface and the coverage status on the MindSpore side.
 > **Document status**: local file, do not commit to Git.
-> **Generated at**: {generation_time}
 
 ---
 
@@ -10,15 +9,15 @@
 
 | Attribute | Value |
 | ---- | -- |
-| **PTA interface** | `torch_npu.npu_{op_name}` |
-| **MindSpore target interface** | `mindspore.ops.{op_name}` |
+| **PTA interface** | `torch.{op_name}` |
+| **MindSpore target interface** | `mindspore.mint.{op_name}` |
 
 ---
 
 ## 2. Forward Call Chain
 
 ```text
-Forward path of torch_npu.npu_{op_name}(args...):
+Forward path of torch.{op_name}(args...):
   1. aclnn{Sub1}(input1, input2) -> intermediate_1    # description
   2. aclnn{Sub2}(intermediate_1, input3) -> output    # description
 ```
@@ -28,7 +27,7 @@ Forward path of torch_npu.npu_{op_name}(args...):
 ## 3. Backward Call Chain
 
 ```text
-Backward path of npu_{op_name}:
+Backward path of {op_name}:
   1. aclnn{SubGrad1}(dout, ...) -> (d_input1, d_input2)   # description
 ```
 
@@ -38,15 +37,15 @@ Backward path of npu_{op_name}:
 
 | # | aclnnXxx | Purpose | YAML | Infer | PyBoost | KBK | UT | Status | Notes |
 | - | -------- | ---- | ---- | ----- | ------- | --- | -- | ---- | ---- |
-| 1 | aclnn{Sub1} | Forward preprocessing | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | ✅ integrated / ⚠️ partial / ❌ missing | |
-| 2 | aclnn{Sub2} | Forward main computation | | | | | | | |
+| 1 | aclnn{Sub1} | Forward | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | ✅ integrated / ⚠️ partial / ❌ missing | |
+| 2 | aclnn{Sub2} | Forward | | | | | | | |
 | 3 | aclnn{SubGrad1} | Backward | | | | | | | |
 
 ---
 
 ## 5. Implementation Plan
 
-### Priority Order (Leaves First, Composite Later; Forward First, Backward Later)
+### Priority Order (Leaf Node First, Composite Later; Forward First, Backward Later)
 
 | No. | Operator | Dependency | Estimated Work | Status |
 | ---- | ---- | ---- | ---------- | ---- |
@@ -57,16 +56,7 @@ Backward path of npu_{op_name}:
 ### Notes
 
 - Implement missing sub-operators step by step following SKILL.md Steps 1-8.
-- Sub-operators usually do not need standalone export or documentation, only YAML + Infer + PyBoost + KBK + UT.
+- Sub-operators usually do not need documentation and exported interface, only YAML + Infer + PyBoost + KBK + UT.
 - Implement the composite operator only after all required sub-operators are ready.
 
 ---
-
-## 6. Validation Strategy
-
-| Stage | Validation Target | Method |
-| ---- | -------- | ---- |
-| Sub-operator level | Each sub-operator is independently correct | Per-sub-operator UT/ST |
-| Composite level - intermediate values | Intermediate tensors align with PTA | Temporary dumps of intermediate tensors for comparison |
-| Composite level - final output | Final output aligns with PTA | Standard ST alignment flow |
-| Backward level | Gradient correctness | Backward ST + numerical gradient checks |

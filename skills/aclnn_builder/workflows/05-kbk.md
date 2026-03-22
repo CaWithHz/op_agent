@@ -1,5 +1,7 @@
 # Workflow 5: KBK (Graph, C++)
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Implement the ACLNN kernel for Graph mode.
@@ -42,7 +44,7 @@ Implement the ACLNN kernel for Graph mode.
 
 This is the same as [04-pyboost.md Step 0](./04-pyboost.md#step-0-verify-the-aclnn-interface). If Step 4 (PyBoost) already confirmed the interface, reuse that conclusion directly.
 
-#### Step 1: Standard Structure ([`reference.md` 6 KBK Kernel Notes](reference.md#kbk-reference))
+#### Step 1: Standard Structure (`reference.md#kbk-reference`)
 
 - `GetWorkSpaceInfo()`: fetch arguments + call `GetWorkspaceForResize`
 - `Launch()`: call `RunOp` or the equivalent execution path
@@ -52,9 +54,9 @@ This is the same as [04-pyboost.md Step 0](./04-pyboost.md#step-0-verify-the-acl
 
 - Forward and backward must use **separate files and separate registrations**
 - The header and implementation namespaces must stay consistent
-- Do not mutate attributes in `InferShape` ([`reference.md` 13.1 Do Not Mutate Attributes In InferShape](reference.md#resize-launch-no-attr-mutation))
+- Do not mutate attributes in `InferShape` (`reference.md#resize-launch-no-attr-mutation`)
 
-### Step 3: Resize/Launch Optimization ([`reference.md` 13 Resize/Launch Optimization Notes](reference.md#resize-launch-optimization))
+### Step 3: Resize/Launch Optimization (`reference.md#resize-launch-optimization`)
 
 - Logic that can be fixed in `Init` should stay in `Init`
 - Logic strongly tied to shape should stay in `Resize`
@@ -62,7 +64,7 @@ This is the same as [04-pyboost.md Step 0](./04-pyboost.md#step-0-verify-the-acl
 - For useless outputs, override `GetUseLessOutputIdx()`
 - For compute-dependent outputs, allocate the largest possible output and call `SyncOutputShape`
 
-### Step 4: Composite Operator Pattern (Meta DSL, [`reference.md` 23.2 KBK Composition](reference.md#composite-kbk-pattern))
+### Step 4: Composite Operator Pattern (Meta DSL, `reference.md#composite-kbk-pattern`)
 
 Meta DSL uses C++ graph construction instead of manual `GetWorkSpaceInfo` / `Launch` / `RunOp`, and the framework then handles type inference and autodiff automatically:
 1. create a new `.cc` file under `mindspore/ccsrc/frontend/operator/meta_dsl/func_op/`
@@ -70,9 +72,9 @@ Meta DSL uses C++ graph construction instead of manual `GetWorkSpaceInfo` / `Lau
 3. inside `BeginFunction(OpName, args...) { ... } EndFunction(OpName)`, compose sub-operators with `Call(Prim(SubOp), ...)`
 4. the framework handles multi-platform adaptation automatically, so **no handwritten KBK kernel file is needed**
 
-Code skeletons are available in [`reference.md` 18.4 KBK Kernel Skeleton](reference.md#kbk-skeleton) for single operators and [`reference.md` 23.2 KBK Composition](reference.md#composite-kbk-pattern) for Meta DSL, but **the repository's current code remains the final reference**.
+Code skeletons are available in `reference.md#kbk-skeleton` for single operators and `reference.md#composite-kbk-pattern` for Meta DSL, but **the repository's current code remains the final reference**.
 
-### Step 5: View Host Kernel (When YAML Has `graph_view: True`, [`reference.md` 26.4 KBK Host Kernel](reference.md#view-kbk-host-kernel))
+### Step 5: View Host Kernel (When YAML Has `graph_view: True`, `reference.md#view-kbk-host-kernel`)
 
 When the operator is a View operator and must support the Graph-mode View path:
 

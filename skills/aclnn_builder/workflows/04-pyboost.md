@@ -1,5 +1,7 @@
 # Workflow 4: PyBoost (Pynative, C++)
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 PyBoost is the operator invocation flow for PyNative mode.
 
 ## Goal
@@ -51,20 +53,20 @@ Before calling an ACLNN interface that has not yet been confirmed:
 
 #### Step 1: Single-Operator Direct Call Pattern
 
-Standard three-part structure ([`reference.md` 5 PyBoost Implementation Notes](reference.md#pyboost-reference)):
+Standard three-part structure (`reference.md#pyboost-reference`):
 1. output tensor allocation
 2. argument conversion (`tuple -> vector`, `None` handling, and so on)
 3. two-stage ACLNN invocation (`LAUNCH_ACLNN` or the project's equivalent macro)
 
 ### Step 2: Composite Operator Pattern (Composing Small C++ Operator APIs)
 
-When the target operator is implemented as a composition of multiple smaller operators ([`reference.md` 23.1 PyBoost Composition](reference.md#composite-pyboost-pattern)):
+When the target operator is implemented as a composition of multiple smaller operators (`reference.md#composite-pyboost-pattern`):
 1. include `#include "mindspore/ccsrc/include/pynative/utils/pyboost/functions/auto_generate/functions.h"`
 2. call small-operator C++ APIs such as `add()`, `mul()`, `sum_ext()`, and so on to compose the logic directly, **without manually calling `LAUNCH_ACLNN`**
 3. set `bprop_expander: False` in YAML so each small operator handles autodiff by itself
 4. if the large operator already has its own explicit bprop, use `RequireGradGuard(false)` to prevent the small operators from triggering autodiff twice
 
-### Step 3: View Operator Pattern (Zero-Copy, [`reference.md` 26 View Operator Development](reference.md#view-operator-development))
+### Step 3: View Operator Pattern (Zero-Copy, `reference.md#view-operator-development`)
 
 When the operator is a pure shape/strides transform such as `transpose`, `reshape`, `expand_dims`, or `slice`:
 
@@ -76,7 +78,7 @@ When the operator is a pure shape/strides transform such as `transpose`, `reshap
 
 > View-specific YAML (`{op_name}_view_op.yaml`) usually delegates its strides calculation directly to the original operator's strides calculation function.
 
-### Step 4: Input Argument Conversion ([`reference.md` 5.1 Input Argument Normalization](reference.md#pyboost-argument-normalization))
+### Step 4: Input Argument Conversion (`reference.md#pyboost-argument-normalization`)
 
 - `tuple` / `list` -> `std::vector<int64_t>`
 - optional `None` inputs -> define the `None` semantics and handle them consistently in PyBoost / Infer / KBK
@@ -88,7 +90,7 @@ You **must** refer to current similar operator files in the same directory to ke
 > Macro names, headers, and helpers may change across versions. Do not copy examples from `reference.md` blindly.
 > Always use the latest real operator code under `customize/` as the final reference.
 
-Code skeletons are available in [`reference.md` 18.3 PyBoost Customize Skeleton](reference.md#pyboost-skeleton) for single operators, [`reference.md` 23.1 PyBoost Composition](reference.md#composite-pyboost-pattern) for C++ API composition, and [`reference.md` 26.3 Strides Calculation Implementation](reference.md#view-strides-calculation), but **the repository's current code is the authoritative reference**.
+Code skeletons are available in `reference.md#pyboost-skeleton` for single operators, `reference.md#composite-pyboost-pattern` for C++ API composition, and `reference.md#view-strides-calculation`, but **the repository's current code is the authoritative reference**.
 
 ---
 

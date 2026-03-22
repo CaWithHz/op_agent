@@ -1,5 +1,7 @@
 # Workflow 6: BPROP Registration
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Implement the backward graph in the bprop builder.
@@ -17,36 +19,36 @@ Implement the backward graph in the bprop builder.
 
 ## Steps
 
-### Step 1: Basic Wiring ([`reference.md` 7 BPROP Wiring Notes](reference.md#bprop-reference))
+### Step 1: Basic Wiring (`reference.md#bprop-reference`)
 
 - Build the backward subgraph only for inputs that actually require gradients
 - Return zero-gradient placeholders for non-Tensor inputs or inputs that do not require gradients
 - Use `need_compute_grad_out()` to decide whether gradient computation is necessary
 
-### Step 2: I/O Count Rules ([`reference.md` 7.1 Backward Input/Output Count Rules](reference.md#bprop-io-rules))
+### Step 2: I/O Count Rules (`reference.md#bprop-io-rules`)
 
 - backward inputs = number of forward inputs + 2 (`out` and `dout`)
 - backward outputs = number of forward inputs (one gradient per forward input)
 - when the forward output is multi-output, `out` is usually a tuple on the backward side -> use `TupleGetItem`
 
-### Step 3: Advanced Notes ([`reference.md` 12 Advanced Backward Notes](reference.md#bprop-advanced-notes))
+### Step 3: Advanced Notes (`reference.md#bprop-advanced-notes`)
 
 | Scenario | Handling |
 | --- | --- |
 | Non-differentiable input | `ib->OutZeros(x)` |
 | All inputs non-differentiable | `ReturnZeros` |
 | Theoretical gradient is zero | `ib->ZerosLikeExt()` |
-| Inplace backward | If input and output are the same object, **as long as one is used in backward, it must not be added to `SetUnusedInputs`**; if the backward logic needs the pre-update `self`, register **`CloneInplaceInput`** (see [`reference.md` 12 Advanced Backward Notes](reference.md#bprop-advanced-notes)) |
+| Inplace backward | If input and output are the same object, **as long as one is used in backward, it must not be added to `SetUnusedInputs`**; if the backward logic needs the pre-update `self`, register **`CloneInplaceInput`** (see `reference.md#bprop-advanced-notes`) |
 | KBK dynamic-shape inplace | `ib->Depend(target, inplace_call)` |
-| `str` parameter gradient slot | Returning `OutZeros` for a `str` position may break KBK backward with dynamic shape; follow real framework behavior (see [`reference.md` 12 Advanced Backward Notes](reference.md#bprop-advanced-notes)) |
+| `str` parameter gradient slot | Returning `OutZeros` for a `str` position may break KBK backward with dynamic shape; follow real framework behavior (see `reference.md#bprop-advanced-notes`) |
 
-### Step 4: `SetUnusedInputs` ([`reference.md` 7.2 When To Use `SetUnusedInputs`](reference.md#bprop-set-unused-inputs))
+### Step 4: `SetUnusedInputs` (`reference.md#bprop-set-unused-inputs`)
 
 If backward does not depend on the tensor values of certain inputs, mark them as unused so memory can be released earlier.
 
-See the code skeleton in [`reference.md` 18.5 BPROP Builder Skeleton](reference.md#bprop-builder-skeleton).
+See the code skeleton in `reference.md#bprop-builder-skeleton`.
 
-### Step 5: Dynamic Inputs In Graph Mode ([`reference.md` 7.3 Dynamic Inputs In Graph Mode](reference.md#bprop-dynamic-inputs))
+### Step 5: Dynamic Inputs In Graph Mode (`reference.md#bprop-dynamic-inputs`)
 
 > In Graph mode (KBK), the **value or shape** of forward inputs may be unknown at graph-compile time.
 > Any shape calculation or control-flow branch in the bprop builder that depends on forward inputs must be deferrable to runtime.

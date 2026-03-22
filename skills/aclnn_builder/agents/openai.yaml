@@ -1,4 +1,4 @@
 interface:
   display_name: "MindSpore ACLNN Builder"
-  short_description: "Plan and execute MindSpore ACLNN operator work"
-  default_prompt: "Use $aclnn-builder to plan and execute a MindSpore ACLNN operator adaptation task."
+  short_description: "Build MindSpore ACLNN adaptations end to end"
+  default_prompt: "Use $aclnn_builder to plan and execute a MindSpore ACLNN operator adaptation task end to end."

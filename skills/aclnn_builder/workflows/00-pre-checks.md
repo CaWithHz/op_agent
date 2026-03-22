@@ -1,5 +1,7 @@
 # Workflow 0: Pre-Checks (Pre-A / Pre-B / Pre-C)
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Before writing code, complete the repository inventory check, reference analysis, solution design, and, for composite scenarios, a call-chain inventory.
@@ -64,27 +66,27 @@ Analyze the differences between the MindSpore, PTA, and ACLNN interfaces, decide
 
 ### Steps
 
-1. **PTA source review (mandatory)**: review the three key file categories in `op-plugin` (see [`reference.md` 19 PTA Source Review Method](reference.md#pta-source-review))
+1. **PTA source review (mandatory)**: review the three key file categories in `op-plugin` (see `reference.md#pta-source-review`)
    - `op_plugin_functions.yaml`: function signatures, parameter types/defaults
    - `derivatives.yaml`: backward registration and differentiable inputs
    - `XxxKernelNpuOpApi.cpp`: actual ACLNN call and parameter preprocessing
    - Check whether PTA has **overloads with the same name** but different signatures
    - **ACLNN interface definition**: look up the corresponding ACLNN document in `aclnn_doc` (for example `aclnnAbs.md`)
-2. **Five-factor interface analysis (mandatory)** ([`reference.md` 15.4.1 Five-Factor Interface Analysis](reference.md#api-analysis-five-factors))
+2. **Five-factor interface analysis (mandatory)** (`reference.md#api-analysis-five-factors`)
    - Check whether functionality, parameter definitions, and dtypes match
    - Decide **whether a new primitive is needed** and **whether to add a new interface or reuse an existing one**
-3. **Choose the YAML strategy** ([`reference.md` 15.4.2 Three YAML Scenarios](reference.md#yaml-three-scenarios))
+3. **Choose the YAML strategy** (`reference.md#yaml-three-scenarios`)
    - YAML interface definitions are described in `mindspore/ops/op_def/yaml/README.md`
    - Existing YAML + reuse existing primitive -> add a `dispatch` field
    - Existing YAML + new primitive -> create a new YAML with the `_ext` suffix
    - No YAML exists -> create a new one
-   - If an existing primitive signature must be changed, refer to similar operators in the MindSpore repository and analyze compatibility in detail ([`reference.md` 15.4.4 Changing Existing Primitive Signatures And Interface Overloads](reference.md#existing-primitive-signature-change))
+   - If an existing primitive signature must be changed, refer to similar operators in the MindSpore repository and analyze compatibility in detail (`reference.md#existing-primitive-signature-change`)
    > Clarify the relationship among YAML, primitive, and function interface:
    > YAML is tightly bound to the primitive, and the defined interface generates the primitive interface.
    > The YAML flow can also auto-generate function interfaces that directly call the generated primitive instance, which simplifies implementation. This is controlled by the `function`-related fields in YAML.
    > Primitive and function interfaces are related, but not strictly identical.
    > When the backend interface and primitive interface match, prefer a primitive name **without** the `Ext` suffix. Use `Ext` only when a primitive with the same name already exists and cannot be reused. If a function interface with the same name already exists but no primitive does, still prefer the primitive name without `Ext`; primitives and function interfaces are distinct.
-4. **Choose the integration path (core decision)** ([`reference.md` 2.3 Two Integration Paths](reference.md#dispatch-path-selection))
+4. **Choose the integration path (core decision)** (`reference.md#dispatch-path-selection`)
    - Determine whether the MindSpore API parameters can be **passed through unchanged** to the ACLNN interface
    - **Path 1 (auto-generated)**: direct passthrough -> omit the `Ascend` field in YAML -> PyBoost and ACLNN kernelmod are auto-generated
    - **Path 2 (Customize)**: parameters require preprocessing -> write `Ascend: XxxAscend` in YAML -> PyBoost and ACLNN kernelmod must be handwritten
@@ -119,10 +121,10 @@ Analyze the differences between the MindSpore, PTA, and ACLNN interfaces, decide
 
 ### Steps
 
-1. **Extract the ACLNN call chain**: extract all forward and backward `EXEC_NPU_CMD` / `aclnnXxx` calls from the PTA C++ code (see [`reference.md` 22.2 Call-Chain Extraction Method](reference.md#aclnn-callchain-extraction))
-2. **Inventory MindSpore coverage**: search one by one to confirm whether each sub-operator has already been integrated ([`reference.md` 22.3 MindSpore Coverage Inventory Method](reference.md#ms-coverage-inventory))
-3. **Produce the coverage inventory** using `templates/aclnn-callchain-inventory.md`
-4. **Plan the rollout order**: leaves first, composite later; follow topological order ([`reference.md` 22.5 Rollout Ordering Principles](reference.md#callchain-rollout-order))
+1. **Extract the ACLNN call chain**: extract all forward and backward `EXEC_NPU_CMD` / `aclnnXxx` calls from the PTA C++ code (see `reference.md#aclnn-callchain-extraction`)
+2. **Inventory MindSpore coverage**: search one by one to confirm whether each sub-operator has already been integrated (`reference.md#ms-coverage-inventory`)
+3. **Produce the coverage inventory** using `templates/aclnn-callchain-analysis.md`
+4. **Plan the rollout order**: leaves first, composite later; follow topological order (`reference.md#callchain-rollout-order`)
 
 ---
 

@@ -1,5 +1,7 @@
 # Workflow 1: YAML Definition
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Define the required YAML for the operator (`op_def` + `api_def` + `function_doc`).
@@ -31,7 +33,7 @@ Core fields:
 
 ### Step 2: Configure `dispatch` According To The Integration Path
 
-**This is where the path decision lands in YAML** ([`reference.md` 2.3 Two Integration Paths](reference.md#dispatch-path-selection)):
+**This is where the path decision lands in YAML** (`reference.md#dispatch-path-selection`):
 
 **Path 1 (auto-generated)** - direct argument passthrough, no Customize needed:
 ```yaml
@@ -54,7 +56,7 @@ Decision rules:
 
 ### Step 3: Use A Code Skeleton Reference
 
-The minimum YAML skeleton is documented in [`reference.md` 18.1 YAML Minimum Skeleton](reference.md#yaml-skeleton).
+The minimum YAML skeleton is documented in `reference.md#yaml-skeleton`.
 
 ---
 

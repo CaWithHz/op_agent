@@ -1,5 +1,7 @@
 # Workflow 9: Documentation
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Complete the English `function_doc` (YAML) and the **Chinese RST documentation**, keeping the two strictly aligned.
@@ -40,7 +42,7 @@ Make sure the YAML `function_doc` created in Step 1 is complete:
 
 > ⚠️ **This is the step most likely to be missed.** Search the repository first to see whether a matching Chinese RST already exists.
 
-Follow the rules in [`reference.md` 10 Documentation Development Notes](reference.md#documentation-reference):
+Follow the rules in `reference.md#documentation-reference`:
 - file location: under `docs/api/api_python/ops/` or the corresponding `mint` / `nn` directory
 - **first inspect existing Chinese RST files for similar operators** to confirm the format and directory structure
 - **filename, in-file title, and interface definition must match exactly** (for functional interfaces, usually only the filename has the extra `func_` prefix)
@@ -51,7 +53,7 @@ Follow the rules in [`reference.md` 10 Documentation Development Notes](referenc
 - whether the old document needs to be updated to point to the new interface
 - whether the new interface, such as `mint.acos`, needs its own standalone Chinese RST
 
-### Step 3: Consistency Check ([`reference.md` 10.1 General Documentation Principles](reference.md#documentation-general-principles))
+### Step 3: Consistency Check (`reference.md#documentation-general-principles`)
 
 | Check Item | English | Chinese |
 | --- | --- | --- |
@@ -60,7 +62,7 @@ Follow the rules in [`reference.md` 10 Documentation Development Notes](referenc
 | Required/optional status | ✅ consistent | ✅ consistent |
 | Examples | ✅ runnable | ✅ runnable |
 
-### Step 4: Confirm The Target Location ([`reference.md` 10.2 Common Output Mapping](reference.md#documentation-output-mapping))
+### Step 4: Confirm The Target Location (`reference.md#documentation-output-mapping`)
 
 | Interface Type | English Location | Chinese Location |
 | --- | --- | --- |

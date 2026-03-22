@@ -116,10 +116,10 @@ xxx:
 ## 10. Validation And Error Handling `[After Step 3/4]`
 
 ### Inference Phase (Infer)
-- {List inference-time validation items}
+- {List checked added in inference-time}
 
 ### Runtime Phase (ACLNN)
-- {List runtime validation items}
+- {List checks added in runtime}
 
 <a id="feature-bprop"></a>
 ## 11. Backward (BPROP) `[After Step 6]`

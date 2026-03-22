@@ -1,5 +1,7 @@
 # Workflow 3: GeneralInfer (C++ Inference)
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Implement the operator's output shape and dtype inference with the GeneralInfer flow in C++. Pay special attention to dynamic shape and dynamic rank cases, where dimensions or rank may be unknown at this stage.
@@ -34,13 +36,13 @@ class OPS_API XXX : public OpFuncImpl {
 
 ### Step 1: Implement `InferShape`
 
-Responsibility boundary ([`reference.md` 4.1 Responsibility Boundary](reference.md#general-infer-responsibilities)):
+Responsibility boundary (`reference.md#general-infer-responsibilities`):
 - **Only perform inference**, do not validate runtime input legality there; leave runtime checks to the kernel
 - Use framework exception macros for errors and include the parameter name, expectation, and actual value
 
 ### Step 2: Handle Dynamic Shape/Rank
 
-Three dynamic categories and their strategies ([`reference.md` 21 Dynamic Shape Classification And Strategy](reference.md#dynamic-shape-strategy)):
+Three dynamic categories and their strategies (`reference.md#dynamic-shape-strategy`):
 
 | Type | Infer Strategy |
 | --- | --- |
@@ -48,7 +50,7 @@ Three dynamic categories and their strategies ([`reference.md` 21 Dynamic Shape 
 | `Input Value Depend` | Read with `GetShapeValue()`; fall back when unknown |
 | `Compute Depend` | Allocate the largest possible size and call `SyncOutputShape` after execution |
 
-Quick fallback rules ([`reference.md` 4.2 Dynamic Shape / Dynamic Rank](reference.md#general-infer-dynamic-shape-rank)):
+Quick fallback rules (`reference.md#general-infer-dynamic-shape-rank`):
 - dynamic rank -> return `kShapeRankAny`
 - key parameter unknown -> the affected dimensions fall back to `kShapeDimAny`
 - all key parameters known -> return the exact shape

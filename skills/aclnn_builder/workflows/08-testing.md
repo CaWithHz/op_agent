@@ -1,5 +1,7 @@
 # Workflow 8: Testing
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Complete the C++ UT and ensure functional and dynamic-shape coverage. This workflow does not cover the creation of ST cases.
@@ -20,7 +22,7 @@ This workflow does not generate ST cases. ST cases are handled by other tasks.
 
 ## Steps
 
-### Step 1: C++ UT ([`reference.md` 8.1 C++ UT](reference.md#testing-cpp-ut)) - Must Be Newly Created
+### Step 1: C++ UT (`reference.md#testing-cpp-ut`) - Must Be Newly Created
 
 Typical construction patterns:
 - scalar: `ShapeVector{}` + `CreateScalar<T>(value)`

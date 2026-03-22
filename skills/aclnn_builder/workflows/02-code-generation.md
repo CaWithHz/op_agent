@@ -1,5 +1,7 @@
 # Workflow 2: Code Generation
 
+Path convention: unless stated otherwise, `reference.md` means `../_shared/reference.md` and `aclnn_doc` means `../_shared/aclnn_doc/`.
+
 ## Goal
 
 Run `mindspore/python/mindspore/ops_generate/gen_ops.py` to generate operator code from YAML. **`gen_ops.py` plays different roles on the two integration paths:**
