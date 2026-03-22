@@ -1,49 +1,48 @@
-# Workflow 2: 代码生成
+# Workflow 2: Code Generation
 
-## 目标
+## Goal
 
-运行 `mindspore/python/mindspore/ops_generate/gen_ops.py`，基于 YAML 生成算子代码。**gen_ops.py 在两条路径下作用不同：**
-- **路径 1（自动生成）**：生成完整的 PyBoost/KBK 调用代码 + 注册代码 + Python 接口
-- **路径 2（Customize）**：生成包装代码（调用手写的 Customize 类）+ Python 接口
+Run `mindspore/python/mindspore/ops_generate/gen_ops.py` to generate operator code from YAML. **`gen_ops.py` plays different roles on the two integration paths:**
+- **Path 1 (auto-generated)**: generates the complete PyBoost/KBK call code, registration code, and Python interfaces
+- **Path 2 (Customize)**: generates wrapper code that calls the handwritten Customize class, plus the Python interfaces
 
-## 输入
+## Inputs
 
-- **YAML 文件**：Workflow 1 产出的 op_def / api_def / function_doc
-- **接入路径**：auto/customize
+- **YAML files**: the `op_def` / `api_def` / `function_doc` outputs from Workflow 1
+- **Integration path**: auto / customize
 
-## 输出
+## Outputs
 
-- **gen_ops.py 运行成功**
+- **`gen_ops.py` runs successfully**
 
-**重要**：MindSpore编译和接口调用依赖自动生成文件。每次修改 YAML 后都必须重新运行 gen_ops.py 更新自动生成文件。
+**Important**: MindSpore builds and interface calls depend on the generated files. Every time YAML changes, you must rerun `gen_ops.py` so the generated files stay up to date.
 
 ---
 
-## 执行步骤
+## Steps
 
-### Step 1：运行 gen_ops.py
+### Step 1: Run `gen_ops.py`
 
 ```bash
 python mindspore/ops/op_def/gen_ops.py
 ```
 
-### Step 2：确认自动生成产物
+### Step 2: Confirm The Generated Artifacts
 
-运行完成后，**必须确认**以下文件已正确生成：
+After it finishes, you **must verify** that the following artifacts were generated correctly:
 
-| 文件 | 路径 1 | 路径 2 | 说明 |
+| File Type | Path 1 | Path 2 | Notes |
 | --- | --- | --- | --- |
-| PyBoost 调用代码 | **完整生成** | 生成包装 | 路径 1 直接调用 ACLNN；路径 2 调用 Customize 类 |
-| KBK 自动注册 | **完整生成** | 不生成 | 路径 2 需手写 kernel 并手动注册 |
-
+| PyBoost call code | **fully generated** | wrapper generated | Path 1 directly calls ACLNN; Path 2 calls the Customize class |
+| KBK auto-registration | **fully generated** | not generated | Path 2 requires a handwritten kernel and manual registration |
 
 ---
 
-## 成功标准
+## Success Criteria
 
-- [ ] `gen_ops.py` 运行无报错
-- [ ] 路径 1：确认 PyBoost 调用代码和 aclnn kernelmod 注册已自动生成
-  - aclnn kernelmod: mindspore/ops/kernel/ascend/aclnn/kernel_mod_impl/aclnn_auto_gen, mindspore/ops/kernel/ascend/aclnn/kernel_mod_impl/auto_generate
-  - pyboost: mindspore/ops/kernel/ascend/aclnn/pyboost_impl/auto_generate
+- [ ] `gen_ops.py` runs without errors
+- [ ] On Path 1, confirm that the PyBoost call code and ACLNN kernelmod registration were generated automatically
+  - ACLNN kernelmod: `mindspore/ops/kernel/ascend/aclnn/kernel_mod_impl/aclnn_auto_gen`, `mindspore/ops/kernel/ascend/aclnn/kernel_mod_impl/auto_generate`
+  - PyBoost: `mindspore/ops/kernel/ascend/aclnn/pyboost_impl/auto_generate`
 
 ---

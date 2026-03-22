@@ -1,65 +1,65 @@
-# Workflow 1: YAML 定义
+# Workflow 1: YAML Definition
 
-## 目标
+## Goal
 
-确定涉及算子的 YAML 定义（op_def + api_def + function_doc）
+Define the required YAML for the operator (`op_def` + `api_def` + `function_doc`).
 
-## 输入
+## Inputs
 
-- **Feature文档**：对接类型、参数列表、输入/输出定义
-- **PTA 源码审查结果**：参数名、类型、默认值、返回值结构
+- **Feature document**: integration type, parameter list, input/output definitions
+- **PTA source review results**: parameter names, types, defaults, and return structure
 
-## 输出
+## Outputs
 
-- **YAML 文件**：`mindspore/ops/op_def/yaml/{op_name}_op.yaml`
-- **文档YAML**: `mindspore/ops/op_def/yaml/doc`
-
----
-
-## 执行步骤
-
-### Step 1：确定 YAML 结构
-
-yaml定义：`mindspore/ops/op_def/yaml/README.md`
-
-核心字段：
-- `op_name`：Primitive 名（通常 PascalCase + 可选的 Customize 后缀）
-- `args`：每个参数的 `name`/`type`/`default`/`desc`
-- `outputs`：每个输出的 `name`/`type`/`desc`
-- `dispatch`：后端接入方式。仅 `enable: True`代表自动生成 添加`Ascend: "XxxAscend"` 指向customize kernel
-- `api`：`py_method` / `module` 等 Python 暴露字段
-
-### Step 2：dispatch 配置（根据接入路径）
-
-**这是路径决策在 YAML 中的落地点**（[`reference.md` 2.3 两条接入路径](reference.md#dispatch-path-selection)）：
-
-**路径 1（自动生成）**——参数直通，不需要 Customize：
-```yaml
-dispatch:
-  enable: True
-  # 不写 Ascend 字段 → 编译自动生成 PyBoost/KBK 代码
-```
-
-**路径 2（Customize）**——参数需预处理：
-```yaml
-dispatch:
-  enable: True
-  Ascend: OpNameAscend    # 指定 Customize 类名
-```
-
-判断依据：
-- 参数个数、顺序、类型与 ACLNN 完全一致 → 路径 1
-- 需要 tuple→vector / None 处理 / str→enum / 标量提取 / 参数重排 / 手动分配输出 → 路径 2
-- 不确定时，先按路径 2 处理（可以后续简化为路径 1）
-
-### Step 3：代码骨架参考
-
-YAML 最小模板见 [`reference.md` 18.1 YAML 最小模板](reference.md#yaml-skeleton)。
+- **YAML file**: `mindspore/ops/op_def/yaml/{op_name}_op.yaml`
+- **Documentation YAML**: `mindspore/ops/op_def/yaml/doc`
 
 ---
 
-## 成功标准
+## Steps
 
-- [ ] YAML 文件已创建(所有涉及算子)
-- [ ] 参数名/类型/默认值与 PTA 源码审查结论一致
+### Step 1: Determine The YAML Structure
+
+YAML definitions are documented in `mindspore/ops/op_def/yaml/README.md`.
+
+Core fields:
+- `op_name`: Primitive name (usually PascalCase, optionally with a Customize suffix)
+- `args`: each parameter's `name` / `type` / `default` / `desc`
+- `outputs`: each output's `name` / `type` / `desc`
+- `dispatch`: backend integration mode. `enable: True` alone means auto-generated; adding `Ascend: "XxxAscend"` points to a Customize kernel
+- `api`: Python exposure fields such as `py_method` / `module`
+
+### Step 2: Configure `dispatch` According To The Integration Path
+
+**This is where the path decision lands in YAML** ([`reference.md` 2.3 Two Integration Paths](reference.md#dispatch-path-selection)):
+
+**Path 1 (auto-generated)** - direct argument passthrough, no Customize needed:
+```yaml
+dispatch:
+  enable: True
+  # omit the Ascend field -> build will auto-generate PyBoost/KBK code
+```
+
+**Path 2 (Customize)** - arguments require preprocessing:
+```yaml
+dispatch:
+  enable: True
+  Ascend: OpNameAscend    # explicitly names the Customize class
+```
+
+Decision rules:
+- Parameter count, order, and types match ACLNN exactly -> Path 1
+- `tuple -> vector`, `None` handling, `str -> enum`, scalar extraction, argument reordering, or manual output allocation is required -> Path 2
+- If uncertain, start with Path 2 and simplify to Path 1 later if possible
+
+### Step 3: Use A Code Skeleton Reference
+
+The minimum YAML skeleton is documented in [`reference.md` 18.1 YAML Minimum Skeleton](reference.md#yaml-skeleton).
+
+---
+
+## Success Criteria
+
+- [ ] YAML files have been created (for every operator involved)
+- [ ] Parameter names, types, and defaults are consistent with the PTA source review conclusions
 ---

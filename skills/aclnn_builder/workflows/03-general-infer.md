@@ -1,25 +1,25 @@
-# Workflow 3: GeneralInfer（C++ 推导）
+# Workflow 3: GeneralInfer (C++ Inference)
 
-## 目标
+## Goal
 
-使用GeneralInfer流程实现算子的输出shape/dtype推导（C++），需要注意输入为动态shape/rank场景(dim, rank在当前阶段未知)。
+Implement the operator's output shape and dtype inference with the GeneralInfer flow in C++. Pay special attention to dynamic shape and dynamic rank cases, where dimensions or rank may be unknown at this stage.
 
-## 输入
+## Inputs
 
-- **YAML 定义**：参数列表、输出结构
-- **PTA 源码分析**：输出 shape 推导逻辑
+- **YAML definition**: parameter list and output structure
+- **PTA source analysis**: output shape inference logic
 
-## 输出
+## Outputs
 
-- **Infer 实现文件**：`mindspore/ops/infer/ops_func_impl`
+- **Infer implementation files**: `mindspore/ops/infer/ops_func_impl`
 
 ---
 
-## 执行步骤
+## Steps
 
-GeneralInfer中主要通过inferinfo类接口获取输入信息进行推导。 
+GeneralInfer mainly performs inference through the `InferInfo` family of interfaces.
 
-基础接口：
+Basic interface:
 ```cpp
 class OPS_API XXX : public OpFuncImpl {
  public:
@@ -28,41 +28,40 @@ class OPS_API XXX : public OpFuncImpl {
   bool GeneralInferRegistered() const override { return true; };
 };
 ```
-- 使用InferInfoPtrList入参的infer接口，同时重载GeneralInferRegistered接口返回true，注册GeneralInfer流程。
-- inferinfo定义： `mindspore/core/include/ops/infer_info/infer_info.h`
-- infer基类定义: `mindspore/core/include/ops/ops_func_impl/op_func_impl.h`
+- Use the `InferInfoPtrList`-based Infer APIs and override `GeneralInferRegistered()` to return `true`, which registers the GeneralInfer flow.
+- `InferInfo` is defined in `mindspore/core/include/ops/infer_info/infer_info.h`
+- The Infer base class is defined in `mindspore/core/include/ops/ops_func_impl/op_func_impl.h`
 
+### Step 1: Implement `InferShape`
 
-### Step 1：实现 InferShape
+Responsibility boundary ([`reference.md` 4.1 Responsibility Boundary](reference.md#general-infer-responsibilities)):
+- **Only perform inference**, do not validate runtime input legality there; leave runtime checks to the kernel
+- Use framework exception macros for errors and include the parameter name, expectation, and actual value
 
-职责边界（[`reference.md` 4.1 职责边界](reference.md#general-infer-responsibilities)）：
-- **只做推导**，不做入参合法性校验（交给kernel）
-- 报错使用框架异常宏，包含：参数名、期望、实际
+### Step 2: Handle Dynamic Shape/Rank
 
-### Step 2：处理动态 shape/rank
+Three dynamic categories and their strategies ([`reference.md` 21 Dynamic Shape Classification And Strategy](reference.md#dynamic-shape-strategy)):
 
-三种动态类型及策略（[`reference.md` 21 动态 shape 分类与处理策略](reference.md#dynamic-shape-strategy)）：
-
-| 类型 | Infer 策略 |
+| Type | Infer Strategy |
 | --- | --- |
-| InputDynamic | 输出对应维度设为 `kShapeDimAny` |
-| Input Value Depend | `GetShapeValue()` 取值；unknown 时回退 |
-| Compute Depend | 分配最大可能 size + 运行后 SyncOutputShape |
+| `InputDynamic` | Set the corresponding output dimension to `kShapeDimAny` |
+| `Input Value Depend` | Read with `GetShapeValue()`; fall back when unknown |
+| `Compute Depend` | Allocate the largest possible size and call `SyncOutputShape` after execution |
 
-快速回退策略（[`reference.md` 4.2 动态 shape / 动态 rank](reference.md#general-infer-dynamic-shape-rank)）：
-- 动态 rank → 返回 `kShapeRankAny`
-- 关键参数 unknown → 对应维度回退 `kShapeDimAny`
-- 参数都已知 → 返回精确 shape
+Quick fallback rules ([`reference.md` 4.2 Dynamic Shape / Dynamic Rank](reference.md#general-infer-dynamic-shape-rank)):
+- dynamic rank -> return `kShapeRankAny`
+- key parameter unknown -> the affected dimensions fall back to `kShapeDimAny`
+- all key parameters known -> return the exact shape
 
-### Step 3：实现 InferType
+### Step 3: Implement `InferType`
 
-通常输出 dtype 与输入一致或按算子语义确定。
+Usually the output dtype either matches the input dtype or is determined by the operator semantics.
 
 ---
 
-## 成功标准
+## Success Criteria
 
-- [ ] InferShape 实现完成，覆盖精确推导和动态回退
-- [ ] InferType 实现完成
+- [ ] `InferShape` is implemented, covering both exact inference and dynamic fallback
+- [ ] `InferType` is implemented
 
 ---

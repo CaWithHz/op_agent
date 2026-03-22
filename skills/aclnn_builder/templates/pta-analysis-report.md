@@ -1,141 +1,141 @@
-# PTA 源码审查报告 - {OpName}
+# PTA Source Review Report - {OpName}
 
-> **文档用途**：记录 PTA（op-plugin）源码审查结果，作为 MS 适配的依据。
-> **文档状态**：本地文件，不提交 Git。
-> **生成时间**：{generation_time}
+> **Purpose**: record the PTA (`op-plugin`) source review results as the basis for MindSpore adaptation.
+> **Document status**: local file, do not commit to Git.
+> **Generated at**: {generation_time}
 
 ---
 
-## 一、基本信息
+## 1. Basic Information
 
-| 属性 | 值 |
+| Attribute | Value |
 | ---- | -- |
-| **PTA 接口名** | `torch.xxx` |
-| **MS 目标接口** | `mindspore.mint.xxx`|
+| **PTA interface name** | `torch.xxx` |
+| **MindSpore target interface** | `mindspore.mint.xxx` |
 
 ---
 
-## 二、前向接口分析
+## 2. Forward Interface Analysis
 
-### 2.1 函数签名（来自 op_plugin_functions.yaml）
+### 2.1 Function Signature (from `op_plugin_functions.yaml`)
 
 ```yaml
-# 摘自 op_plugin/config/op_plugin_functions.yaml
+# excerpted from op_plugin/config/op_plugin_functions.yaml
 {paste_yaml_entry}
 ```
 
-### 2.2 参数详情
+### 2.2 Parameter Details
 
-| 参数名 | 类型 | 必需 | 默认值 | MS 映射 | 备注 |
+| Parameter Name | Type | Required | Default | MindSpore Mapping | Notes |
 | ------ | ---- | ---- | ------ | ------- | ---- |
 | {param1} | {type} | ✅/❌ | {default} | {ms_name} | |
 
-### 2.3 ACLNN 调用分析（来自 C++ 实现）
+### 2.3 ACLNN Call Analysis (from the C++ implementation)
 
-**文件**：`op_plugin/ops/opapi/{OpName}KernelNpuOpApi.cpp`
+**File**: `op_plugin/ops/opapi/{OpName}KernelNpuOpApi.cpp`
 
 ```cpp
-// 关键代码摘录
+// key code excerpt
 {key_code_snippet}
 ```
 
-**调用的 ACLNN 接口**：`aclnn{XxxYyy}`
-**参数预处理**：{describe_preprocessing}
-**输出构造**：{describe_output_construction}
-**硬编码参数**：{list_hardcoded_params}
+**ACLNN interface called**: `aclnn{XxxYyy}`
+**Parameter preprocessing**: {describe_preprocessing}
+**Output construction**: {describe_output_construction}
+**Hard-coded parameters**: {list_hardcoded_params}
 
 ---
 
-## 三、反向接口分析
+## 3. Backward Interface Analysis
 
-### 3.1 反向注册（来自 derivatives.yaml）
+### 3.1 Backward Registration (from `derivatives.yaml`)
 
 ```yaml
-# 摘自 op_plugin/config/derivatives.yaml
+# excerpted from op_plugin/config/derivatives.yaml
 {paste_derivatives_entry}
 ```
 
-### 3.2 可微输入列表
+### 3.2 Differentiable Inputs
 
-| 输入 | 是否可微 | 备注 |
+| Input | Differentiable | Notes |
 | ---- | -------- | ---- |
 | {input1} | ✅/❌ | |
 
-### 3.3 反向 ACLNN 调用分析
+### 3.3 Backward ACLNN Call Analysis
 
-**文件**：`op_plugin/ops/opapi/{OpName}GradKernelNpuOpApi.cpp`
+**File**: `op_plugin/ops/opapi/{OpName}GradKernelNpuOpApi.cpp`
 
-**调用的 ACLNN 接口**：`aclnn{XxxGrad}`
-**反向输出**：{list_grad_outputs}
-**硬编码参数**：{list_hardcoded_params}
+**ACLNN interface called**: `aclnn{XxxGrad}`
+**Backward outputs**: {list_grad_outputs}
+**Hard-coded parameters**: {list_hardcoded_params}
 
 ---
 
-## 四、前向 vs 反向差异
+## 4. Forward Vs Backward Differences
 
-| # | 内容 | 前向 | 反向 | MS 适配影响 |
+| # | Item | Forward | Backward | Impact On MindSpore Adaptation |
 | - | ---- | ---- | ---- | ----------- |
 | 1 | {diff_item} | {fwd_value} | {bwd_value} | {impact} |
 
 ---
 
-## 五、代码与文档不一致项（如有）
+## 5. Documentation/Code Mismatches (If Any)
 
-| # | 内容 | 文档描述 | 代码实际行为 | 文件/行号 | 状态 |
+| # | Item | Documentation Says | Actual Code Behavior | File/Line | Status |
 | - | ---- | -------- | ------------ | --------- | ---- |
-| 1 | {item} | {doc_says} | {code_does} | {file:line} | ⚠️ 待确认 / ✅ 已确认 |
+| 1 | {item} | {doc_says} | {code_does} | {file:line} | ⚠️ To be confirmed / ✅ Confirmed |
 
-> **处理方式**：不一致项交给用户找接口人确认，拿到结论后继续。
+> **Handling rule**: when documentation and code disagree, ask the user to confirm with the interface owner before continuing.
 
 ---
 
-## 六、ACLNN 调用链（组合场景填写）
+## 6. ACLNN Call Chain (Fill For Composite Scenarios)
 
-> 如果 PTA 直连单个 aclnnXxx，此节留空。
+> Leave this section empty if PTA directly calls a single `aclnnXxx`.
 
 ```text
-{OpName} 前向调用链：
-  ① aclnn{Sub1}(...) → {intermediate_1}
-  ② aclnn{Sub2}(...) → {output}
+Forward call chain of {OpName}:
+  1. aclnn{Sub1}(...) -> {intermediate_1}
+  2. aclnn{Sub2}(...) -> {output}
 
-{OpName} 反向调用链：
-  ① aclnn{SubGrad}(...) → {grad_outputs}
+Backward call chain of {OpName}:
+  1. aclnn{SubGrad}(...) -> {grad_outputs}
 ```
 
 ---
 
-## 七、MS 适配结论与接入方案
+## 7. MindSpore Adaptation Conclusion And Integration Plan
 
-### 7.1 对接决策
+### 7.1 Integration Decision
 
-| 属性 | 值 | 依据 |
+| Attribute | Value | Basis |
 | ---- | -- | ---- |
-| **对接类型** | 新增原语/复用原语 | {判断依据：参数是否一致/名称映射/语义不一致} |
-| **接入路径** | auto/customize | {判断依据：参数能否原样透传 ACLNN} |
-| **ACLNN 接口** | `aclnn{Xxx}`| |
-| **组合场景** | {是/否} | 子算子列表见第六节 |
+| **Integration type** | new primitive / reuse primitive | {Whether parameters match, whether there is only a name mapping, whether semantics differ} |
+| **Integration path** | auto / customize | {Whether parameters can be passed to ACLNN unchanged} |
+| **ACLNN interface** | `aclnn{Xxx}` | |
+| **Composite scenario** | {yes/no} | The sub-operator list is in Section 6 |
 
-### 7.2 Primitive / YAML 策略
+### 7.2 Primitive / YAML Strategy
 
-| 问题 | 结论 | 说明 |
+| Question | Conclusion | Explanation |
 | ---- | ---- | ---- |
-| **是否已有同名 Primitive** | {是 / 否} |  |
-| **能否复用已有 Primitive** | {能 / 不能（参数不兼容）} | {不兼容原因} |
-| **YAML 策略** | {新增 / 修改已有 YAML} | |
-| **dispatch 配置** | `enable: True` {+ `Ascend: XxxAscend`（路径 2）/ 不写 Ascend（路径 1）} | |
+| **Is there already a primitive with the same name?** | {yes / no} | |
+| **Can the existing primitive be reused?** | {yes / no (parameter-incompatible)} | {Why it is incompatible} |
+| **YAML strategy** | {new / modify existing YAML} | |
+| **`dispatch` configuration** | `enable: True` {+ `Ascend: XxxAscend` for Path 2 / omit `Ascend` for Path 1} | |
 
-### 7.3 需要 Customize 的参数预处理（路径 2 填写）
+### 7.3 Parameter Preprocessing Needed For Customize (Fill For Path 2)
 
-> 路径 1 此节留空。
+> Leave this section empty on Path 1.
 
-| MS 参数 | MS 类型 | ACLNN 期望 | 预处理方式 |
+| MindSpore Parameter | MindSpore Type | ACLNN Expects | Preprocessing Method |
 | -------- | ------- | ---------- | ---------- |
-| {param} | {type} | {aclnn_type} | {如：Scalar→ScalarPtr / tuple→vector / None→空tensor} |
+| {param} | {type} | {aclnn_type} | {for example Scalar -> ScalarPtr / tuple -> vector / None -> empty tensor} |
 
-### 7.4 反向策略
+### 7.4 Backward Strategy
 
-| 属性 | 值 |
+| Attribute | Value |
 | ---- | -- |
-| **PTA 反向方式** | {单独 aclnnGrad / autograd 组合 / 无反向} |
-| **MS 反向方式** | {REG_BPROP_BUILDER 手写 / bprop_expander: False 自动微分 / 无反向} |
-| **反向 ACLNN** | {aclnnXxxGrad / 无（用现有算子组合）} |
+| **PTA backward style** | {dedicated `aclnnGrad` / autograd composition / no backward} |
+| **MindSpore backward style** | {handwritten `REG_BPROP_BUILDER` / autodiff via `bprop_expander: False` / no backward} |
+| **Backward ACLNN** | {`aclnnXxxGrad` / none, use existing ops composition} |

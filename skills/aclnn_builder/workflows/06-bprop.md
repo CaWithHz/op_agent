@@ -1,118 +1,117 @@
-# Workflow 6: BPROP 注册
+# Workflow 6: BPROP Registration
 
-## 目标
+## Goal
 
-在 bprop builder 中实现反向图。
+Implement the backward graph in the bprop builder.
 
-## 输入
+## Inputs
 
-- **PTA derivatives.yaml 分析**：哪些输入可微、grad 函数参数传递
-- **反向算子 YAML 定义**：反向算子参数
+- **PTA `derivatives.yaml` analysis**: which inputs are differentiable and how gradient-function arguments are passed
+- **Backward operator YAML definition**: backward operator parameters
 
-## 输出
+## Outputs
 
-- **BPROP 实现代码**：在合适的 `grad_*ops.cc` 中添加
+- **BPROP implementation code**: added to the appropriate `grad_*ops.cc`
 
 ---
 
-## 执行步骤
+## Steps
 
-### Step 1：基本接线（[`reference.md` 7 BPROP 接线要点](reference.md#bprop-reference)）
+### Step 1: Basic Wiring ([`reference.md` 7 BPROP Wiring Notes](reference.md#bprop-reference))
 
-- 只为需要梯度的输入构建反向子图
-- 非张量/不需要梯度的输入返回零梯度占位
-- 使用 `need_compute_grad_out()` 做必要性判断
+- Build the backward subgraph only for inputs that actually require gradients
+- Return zero-gradient placeholders for non-Tensor inputs or inputs that do not require gradients
+- Use `need_compute_grad_out()` to decide whether gradient computation is necessary
 
-### Step 2：I/O 个数规则（[`reference.md` 7.1 反向输入/输出个数经验规则](reference.md#bprop-io-rules)）
+### Step 2: I/O Count Rules ([`reference.md` 7.1 Backward Input/Output Count Rules](reference.md#bprop-io-rules))
 
-- 反向输入 = 正向输入个数 + 2（`out` 与 `dout`）
-- 反向输出 = 正向输入个数（每个输入一个梯度）
-- 多输出正向：`out` 在反向侧通常是 tuple → `TupleGetItem`
+- backward inputs = number of forward inputs + 2 (`out` and `dout`)
+- backward outputs = number of forward inputs (one gradient per forward input)
+- when the forward output is multi-output, `out` is usually a tuple on the backward side -> use `TupleGetItem`
 
-### Step 3：进阶注意事项（[`reference.md` 12 反向实现注意事项](reference.md#bprop-advanced-notes)）
+### Step 3: Advanced Notes ([`reference.md` 12 Advanced Backward Notes](reference.md#bprop-advanced-notes))
 
-| 场景 | 处理方式 |
+| Scenario | Handling |
 | --- | --- |
-| 不可微分入参 | `ib->OutZeros(x)` |
-| 全部不可微分 | `ReturnZeros` |
-| 梯度理论为 0 | `ib->ZerosLikeExt()` |
-| inplace 反向 | 输入与输出为同一对象时，**只要有一个被用于反向就不能加入 SetUnusedInputs**；反向逻辑需要「更新前的 self」时，注册 **CloneInplaceInput**（见 [`reference.md` 12 反向实现注意事项](reference.md#bprop-advanced-notes)） |
-| KBK 动态 shape inplace | `ib->Depend(target, inplace_call)` |
-| str 类型参数梯度 | 若在 str 位置返回 OutZeros，KBK 反向动态 shape 可能报错，以实际框架行为为准（见 [`reference.md` 12 反向实现注意事项](reference.md#bprop-advanced-notes)） |
+| Non-differentiable input | `ib->OutZeros(x)` |
+| All inputs non-differentiable | `ReturnZeros` |
+| Theoretical gradient is zero | `ib->ZerosLikeExt()` |
+| Inplace backward | If input and output are the same object, **as long as one is used in backward, it must not be added to `SetUnusedInputs`**; if the backward logic needs the pre-update `self`, register **`CloneInplaceInput`** (see [`reference.md` 12 Advanced Backward Notes](reference.md#bprop-advanced-notes)) |
+| KBK dynamic-shape inplace | `ib->Depend(target, inplace_call)` |
+| `str` parameter gradient slot | Returning `OutZeros` for a `str` position may break KBK backward with dynamic shape; follow real framework behavior (see [`reference.md` 12 Advanced Backward Notes](reference.md#bprop-advanced-notes)) |
 
-### Step 4：SetUnusedInputs（[`reference.md` 7.2 SetUnusedInputs 的使用场景](reference.md#bprop-set-unused-inputs)）
+### Step 4: `SetUnusedInputs` ([`reference.md` 7.2 When To Use `SetUnusedInputs`](reference.md#bprop-set-unused-inputs))
 
-反向不依赖某些输入 tensor value 时，标记 unused 以尽早释放内存。
+If backward does not depend on the tensor values of certain inputs, mark them as unused so memory can be released earlier.
 
-代码骨架见 [`reference.md` 18.5 BPROP builder 骨架](reference.md#bprop-builder-skeleton)。
+See the code skeleton in [`reference.md` 18.5 BPROP Builder Skeleton](reference.md#bprop-builder-skeleton).
 
-### Step 5：图模式动态输入处理（[`reference.md` 7.3 图模式动态输入处理](reference.md#bprop-dynamic-inputs)）
+### Step 5: Dynamic Inputs In Graph Mode ([`reference.md` 7.3 Dynamic Inputs In Graph Mode](reference.md#bprop-dynamic-inputs))
 
-> 图模式（KBK）下正向输入的**值或 shape** 在图编译态可能未知，bprop builder 中
-> 基于正向输入的 ShapeCalc 或控制流分支需要能延迟到运行时执行。
-> **不处理此场景会导致图模式下反向编译失败或结果错误。**
+> In Graph mode (KBK), the **value or shape** of forward inputs may be unknown at graph-compile time.
+> Any shape calculation or control-flow branch in the bprop builder that depends on forward inputs must be deferrable to runtime.
+> **If this is not handled, backward compilation in Graph mode may fail or produce wrong results.**
 
-必须检查以下场景并采取对应措施：
+You must check the following scenarios and apply the correct handling:
 
-| 场景 | 检查方法 | 处理方式 |
+| Scenario | How To Check | Handling |
 | --- | --- | --- |
-| 标量输入值 unknown | `GetScalarValue<>()->has_value()` | 值已知走图编译期分支；unknown 走 `Conditional` 运行时分支 |
-| 输入 shape 动态 | `IsDynamicRank()` / `IsDynamicShape()` | shape 依赖的计算用 `DEF_PURE_SHAPE_CALC` + `ib->ShapeCalc` 延迟 |
-| 控制流依赖运行时值 | 图编译期值可能变化 | 用 `ib->Conditional(cond, true_br, false_br)` 替代 C++ if/else |
+| Scalar input value is unknown | `GetScalarValue<>()->has_value()` | If known, branch in C++; if unknown, build a runtime branch with `Conditional` |
+| Input shape is dynamic | `IsDynamicRank()` / `IsDynamicShape()` | Use `DEF_PURE_SHAPE_CALC` + `ib->ShapeCalc` for shape-dependent calculations |
+| Control flow depends on runtime values | compile-time value may change | Use `ib->Conditional(cond, true_br, false_br)` instead of raw C++ `if/else` |
 
-> 🚫 **反模式禁令（绝对禁止）**：
+> 🚫 **Forbidden anti-pattern**:
 >
-> 当 `GetScalarValue<>()->has_value()` 返回 false 时，**禁止直接
-> `MS_EXCEPTION(ValueError)` 报错退出**。这等于放弃了图模式动态输入的支持。
+> If `GetScalarValue<>()->has_value()` returns false, you must **not**
+> immediately throw `MS_EXCEPTION(ValueError)`.
+> That effectively gives up Graph-mode dynamic-input support.
 >
-> **错误写法（禁止）**：
+> **Wrong pattern (forbidden)**:
 > ```cpp
 > p = p_node->BuildValue();
 > if (!GetScalarValue<float>(p)->has_value()) {
->   MS_EXCEPTION(ValueError) << "p must be constant!";  // ❌ 禁止
+>   MS_EXCEPTION(ValueError) << "p must be constant!";  // ❌ forbidden
 > }
 > ```
 >
-> **正确写法（必须）**：
+> **Correct pattern (required)**:
 > ```cpp
 > p = p_node->BuildValue();
 > p_opt = GetScalarValue<float>(p);
 > if (p_opt->has_value()) {
->   // 图编译期已知 → C++ if/else 分支优化
+>   // known at graph compile time -> optimize with C++ branching
 >   auto p_val = p_opt.value();
->   // ... 按值分支
+>   // ... branch on the value
 >   if (p_val...) 
 > } else {
->   // 图编译期未知 → 用 Conditional 构建运行时分支
+>   // unknown at graph compile time -> build a runtime branch with Conditional
 >   auto true_branch = [&ib](...) { ... };
 >   auto false_branch = [&ib](...) { ... };
 >   result = ib->Conditional(cond, true_branch, false_branch);
 > }
 > ```
 >
-> 如果算子的反向逻辑确实无法在值 unknown 时推导（极罕见），或者你实在无法处理kbk下的动态输入，
-> 必须在验证闭环中**明确记录原因并征求用户确认**，而非默默 throw。
+> If the backward logic truly cannot be inferred when the value is unknown, which is rare, or if you cannot handle KBK dynamic input support, you must **record the reason explicitly in the validation report and ask the user to confirm**, rather than silently throwing.
 
-**参考实现**（仓库中的典型写法）：
-- `ReduceStd` bprop：`keep_dims` 和 `unbiased` 值 unknown 时用 `Conditional` 做运行时分支
-- `MatMulExt` bprop：`IsDynamicRank(x_shape) || IsDynamicShape(w_shape)` 时走独立动态路径
-
----
-
-## 成功标准
-
-- [ ] BPROP 注册代码已添加
-- [ ] 反向 I/O 个数与正向一致
-- [ ] 不可微分入参已返回零梯度占位
-- [ ] 与 PTA `derivatives.yaml` 的可微输入列表对齐
-- [ ] **图模式动态输入场景已处理**（标量 unknown → Conditional；shape 动态 → ShapeCalc/动态路径）
+**Reference implementations** (typical repository patterns):
+- `ReduceStd` bprop: uses `Conditional` when `keep_dims` and `unbiased` are unknown
+- `MatMulExt` bprop: uses a dedicated dynamic path when `IsDynamicRank(x_shape) || IsDynamicShape(w_shape)`
 
 ---
 
-## 常见问题
+## Success Criteria
 
-1. **bprop 标量 unknown 直接报错退出**：在 `ContainsValueAny()` 为 true 时
-   用 `MS_EXCEPTION` 抛异常而非构建运行时分支。
-   → 必须用 `ib->Conditional(cond, true_branch, false_branch)` 处理。
-   图编译期值已知时走 C++ if/else 分支；unknown 时走 `Conditional` 运行时分支。
-   参考 `ReduceStd` bprop 的写法。详见 `workflows/06-bprop.md` Step 5。
+- [ ] BPROP registration code has been added
+- [ ] Backward I/O counts match the forward operator
+- [ ] Non-differentiable inputs return zero-gradient placeholders
+- [ ] The differentiable input list is aligned with PTA `derivatives.yaml`
+- [ ] **Graph-mode dynamic input cases are handled** (unknown scalar -> `Conditional`; dynamic shape -> `ShapeCalc` / dynamic path)
+
+---
+
+## Common Problems
+
+1. **Directly throwing when a bprop scalar is unknown**: using `MS_EXCEPTION` when `ContainsValueAny()` is true instead of building a runtime branch.
+   -> You must use `ib->Conditional(cond, true_branch, false_branch)`.
+   If the value is known at graph compile time, branch in C++; if unknown, branch at runtime with `Conditional`.
+   See `ReduceStd` bprop for the pattern. Details are in Step 5 of `workflows/06-bprop.md`.

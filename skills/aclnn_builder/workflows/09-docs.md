@@ -1,111 +1,111 @@
-# Workflow 9: 文档
+# Workflow 9: Documentation
 
-## 目标
+## Goal
 
-完成英文 function_doc（YAML）和**中文 RST 文档**，中英文严格一致。
+Complete the English `function_doc` (YAML) and the **Chinese RST documentation**, keeping the two strictly aligned.
 
-> **⚠️ 常见遗漏**：英文 function_doc 通常在 Step 1 的 YAML 里已经写了，
-> agent 容易误以为"文档步骤已完成"从而**跳过中文 RST**。
-> **英文 doc YAML ≠ 文档步骤完成**——中文 RST 是独立产物，必须单独确认。
+> **Common omission**: the English `function_doc` is usually already created in the Step 1 YAML,
+> so the agent may wrongly think "the documentation step is already done" and **skip the Chinese RST**.
+> **English doc YAML does not mean the documentation step is complete**. Chinese RST is a separate deliverable and must be confirmed independently.
 
-**中英文一致的含义**：参数名、默认值、必选/可选、语义与示例保持一致；
-格式遵循中英文各自规范，不要求字面完全相同。
+**What EN/CN consistency means**: parameter names, default values, required/optional status, semantics, and examples must match.
+Each language should still follow its own documentation conventions; literal sentence-by-sentence identity is not required.
 
-## 输入
+## Inputs
 
-- **YAML 定义**：function_doc 部分（Step 1 已创建）
-- **算子接口实现**：参数、默认值、示例
+- **YAML definition**: the `function_doc` section created in Step 1
+- **Operator interface implementation**: parameters, defaults, and examples
 
-## 输出（两类文档 + 接口列表，逐项确认）
+## Outputs (Two Documentation Types + Interface Lists, Confirmed One By One)
 
-| 类型 | 文件位置 | 必须程度 | 状态标注 |
+| Type | File Location | Requirement | Status |
 | --- | --- | --- | --- |
-| **英文 function_doc** | `ops/op_def/yaml/doc/{op}_doc.yaml` | `[MUST]` | ✅已在 Step 1 创建 / 需完善 |
-| **中文 RST** | `docs/api/api_python/ops/*.rst`（或对应 mint/nn 目录） | `[MUST]` 公开 API 必须 | ✅已写 / ✅已有 / ❌未写 |
-| **接口列表** | 对应 `mindspore.xxx.rst` 列表文件 | `[MUST]` | 英文列表 + 中文列表均需按字母序更新 |
+| **English `function_doc`** | `ops/op_def/yaml/doc/{op}_doc.yaml` | `[MUST]` | ✅ created in Step 1 / needs refinement |
+| **Chinese RST** | `docs/api/api_python/ops/*.rst` (or the matching `mint` / `nn` directory) | `[MUST]` required for public APIs | ✅ written / ✅ already exists / ❌ not written |
+| **Interface list** | matching `mindspore.xxx.rst` index file | `[MUST]` | both English and Chinese lists must be updated in alphabetical order |
 
 ---
 
-## 执行步骤
+## Steps
 
-### Step 1：英文 function_doc 完善
+### Step 1: Refine The English `function_doc`
 
-确保 Step 1 创建的 YAML function_doc 完整：
-- `desc`：算子功能简述（公开 API 建议包含原理、公式、论文出处或必要背景）
-- `args`：每个参数的描述
-- `returns`：返回值描述
-- `examples`：可运行的完整示例（含 import）
+Make sure the YAML `function_doc` created in Step 1 is complete:
+- `desc`: short description of the operator; for public APIs, include principles, formulas, paper references, or other necessary background when appropriate
+- `args`: description for each parameter
+- `returns`: return-value description
+- `examples`: a complete runnable example including imports
 
-### Step 2：中文 RST（公开 API 必须）
+### Step 2: Chinese RST (Required For Public APIs)
 
-> ⚠️ **这是最容易被遗漏的步骤。** 先搜索仓库中是否已有对应的中文 RST。
+> ⚠️ **This is the step most likely to be missed.** Search the repository first to see whether a matching Chinese RST already exists.
 
-按 [`reference.md` 10 文档与资料开发要点](reference.md#documentation-reference) 的规范：
-- 文件位置：`docs/api/api_python/ops/` 下（或 mint/nn 对应目录）
-- **先看仓库里同类算子的中文 RST 文件**确认格式和目录结构
-- **文件名、文件内标题、接口定义三者严格一致**（functional 场景通常只有文件名多 `func_` 前缀）
-- 接口名下方 `=` 长度不小于标题名长度
-- 接口列表按字母序添加
+Follow the rules in [`reference.md` 10 Documentation Development Notes](reference.md#documentation-reference):
+- file location: under `docs/api/api_python/ops/` or the corresponding `mint` / `nn` directory
+- **first inspect existing Chinese RST files for similar operators** to confirm the format and directory structure
+- **filename, in-file title, and interface definition must match exactly** (for functional interfaces, usually only the filename has the extra `func_` prefix)
+- the underline of `=` below the title must be at least as long as the title itself
+- update interface index files in alphabetical order
 
-**如果已有旧版中文 RST**（如 `acos` 已有但 `acos_ext` 没有），需要确认：
-- 旧文档是否需要更新指向新接口
-- 是否需要为新接口（如 `mint.acos`）新增独立的中文 RST
+**If an older Chinese RST already exists** (for example `acos` exists but `acos_ext` does not), confirm:
+- whether the old document needs to be updated to point to the new interface
+- whether the new interface, such as `mint.acos`, needs its own standalone Chinese RST
 
-### Step 3：一致性检查（[`reference.md` 10.1 总原则](reference.md#documentation-general-principles)）
+### Step 3: Consistency Check ([`reference.md` 10.1 General Documentation Principles](reference.md#documentation-general-principles))
 
-| 检查项 | 英文 | 中文 |
+| Check Item | English | Chinese |
 | --- | --- | --- |
-| 参数名 | ✅ 一致 | ✅ 一致 |
-| 默认值 | ✅ 一致 | ✅ 一致 |
-| 必选/可选 | ✅ 一致 | ✅ 一致 |
-| 示例 | ✅ 可运行 | ✅ 可运行 |
+| Parameter names | ✅ consistent | ✅ consistent |
+| Default values | ✅ consistent | ✅ consistent |
+| Required/optional status | ✅ consistent | ✅ consistent |
+| Examples | ✅ runnable | ✅ runnable |
 
-### Step 4：落点确认（[`reference.md` 10.2 常见场景与落点](reference.md#documentation-output-mapping)）
+### Step 4: Confirm The Target Location ([`reference.md` 10.2 Common Output Mapping](reference.md#documentation-output-mapping))
 
-| 接口类型 | 英文位置 | 中文位置 |
+| Interface Type | English Location | Chinese Location |
 | --- | --- | --- |
-| functional | 实现 .py | `docs/api/.../ops/func_*.rst` |
-| mint | mint 接口实现/列表 | `docs/api/.../mint/*.rst` |
+| functional | implementation `.py` | `docs/api/.../ops/func_*.rst` |
+| mint | mint interface implementation / list | `docs/api/.../mint/*.rst` |
 | nn | `nn/*.py` | `docs/api/.../nn/*.rst` |
-| Tensor 方法 | `tensor.py` | `docs/api/.../Tensor/` |
-| ops Primitive | Primitive 实现/列表 | `docs/api/.../ops/mindspore.ops.*.rst` |
+| Tensor method | `tensor.py` | `docs/api/.../Tensor/` |
+| `ops` Primitive | Primitive implementation / list | `docs/api/.../ops/mindspore.ops.*.rst` |
 
 ---
 
-## 🔒 Step 9 完成前强制检查
+## 🔒 Mandatory Check Before Marking Step 9 Complete
 
 ```text
-文档产出检查清单：
+Documentation deliverable checklist:
 
-英文 function_doc（YAML）：
-  - 文件路径：ops/op_def/yaml/doc/{op}_doc.yaml
-  - 状态：✅已在 Step 1 创建且完整 / 需完善（哪些字段缺失：___）
+English function_doc (YAML):
+  - File path: ops/op_def/yaml/doc/{op}_doc.yaml
+  - Status: ✅ created in Step 1 and complete / needs refinement (missing fields: ___)
 
-中文 RST：
-  - 文件路径：docs/api/api_python/ops/mindspore.ops.func_{op}.rst（或对应 mint/Tensor 目录）
-  - 状态：✅已新建 / ✅已有且覆盖新接口 / ❌未写（原因：___）
-  - 若跳过：是否为内部算子（非公开 API）？ 是/否
+Chinese RST:
+  - File path: docs/api/api_python/ops/mindspore.ops.func_{op}.rst (or the matching mint/Tensor directory)
+  - Status: ✅ newly created / ✅ already exists and covers the new interface / ❌ not written (reason: ___)
+  - If skipped: is this an internal operator (not a public API)? yes / no
 
-接口列表（英文 + 中文）：
-  - 是否已按字母序添加到对应 mindspore.xxx.rst？ 是/否
+Interface lists (English + Chinese):
+  - Added to the matching mindspore.xxx.rst file in alphabetical order? yes / no
 
-中英文一致性：
-  - 参数名一致：是/否
-  - 默认值一致：是/否
-  - 示例一致且可运行：是/否
+EN/CN consistency:
+  - Parameter names consistent: yes / no
+  - Default values consistent: yes / no
+  - Examples consistent and runnable: yes / no
 ```
 
-> **公开 API（functional/mint/nn/Tensor）必须有中文 RST。**
-> 只有**内部算子**（不在 `__all__` 中导出、不需要公开文档）才允许跳过。
-> 跳过时必须明确标注原因，不允许静默跳过。
+> **Public APIs (functional / mint / nn / Tensor) must have Chinese RST.**
+> Only **internal operators** that are not exported in `__all__` and do not need public docs may skip it.
+> When skipping, you must state the reason explicitly. Silent skipping is not allowed.
 
-## 成功标准
+## Success Criteria
 
-- [ ] 英文 function_doc 完整（desc/args/returns/examples）
-- [ ] **中文 RST 文件已创建**（公开 API）或明确标注为内部算子可跳过
-- [ ] 中英文参数名/默认值/示例严格一致
-- [ ] 示例可运行，含完整 import
-- [ ] 接口列表已按字母序更新
-- [ ] 文件名/标题/接口定义三者一致
+- [ ] The English `function_doc` is complete (`desc` / `args` / `returns` / `examples`)
+- [ ] **The Chinese RST file has been created** for public APIs, or the operator is explicitly marked as internal and skippable
+- [ ] Parameter names, default values, and examples are strictly consistent between English and Chinese
+- [ ] Examples are runnable and include complete imports
+- [ ] The interface lists have been updated in alphabetical order
+- [ ] Filename, title, and interface definition all match
 
 ---

@@ -1,46 +1,46 @@
-# Workflow 0: 前置检查（Pre-A / Pre-B / Pre-C）
+# Workflow 0: Pre-Checks (Pre-A / Pre-B / Pre-C)
 
-## 目标
+## Goal
 
-在写代码前，完成存量检查、对标分析、方案设计与组合场景调用链盘点。
+Before writing code, complete the repository inventory check, reference analysis, solution design, and, for composite scenarios, a call-chain inventory.
 
-## 输入
+## Inputs
 
-- **算子名称**：算子接口名（API、Primitive、ACLNN接口）
-- **PTA 对标接口**：`torch_npu.npu_xxx` 或 `torch.xxx`
+- **Operator name**: the API name, Primitive name, and ACLNN interface name
+- **PTA reference interface**: `torch_npu.npu_xxx` or `torch.xxx`
 
-## 输出
+## Outputs
 
-- **存量检查结果**：该算子在 MS 仓库中已有 / 缺失的部分
-- **方案设计文档**：接口类型、对接分类、影响面评估, 以md文件形式输出
-- **ACLNN 调用链盘点表**（组合场景）：子算子覆盖状态与实施计划
+- **Inventory result**: which parts of this operator already exist or are missing in the MindSpore repository
+- **Solution design document**: interface type, integration category, impact analysis, output as a Markdown file
+- **ACLNN call-chain inventory** (for composite scenarios): sub-operator coverage status and rollout plan
 
-## 约束
+## Constraints
 
-- **本地代码优先**：PTA（op-plugin）、PyTorch、MindSpore 的源码查阅**必须在本地工作区目录中搜索**。
+- **Local source wins**: source inspection of PTA (`op-plugin`), PyTorch, and MindSpore **must be performed by searching the local workspace**.
 
 ---
 
-## Pre-A：存量检查
+## Pre-A: Inventory Check
 
-当用户让你"新增 / 适配某算子"时，**先搜索确认**该算子在仓库中是否已存在。
+When the user asks you to "add" or "adapt" an operator, **search first** to confirm whether the operator already exists in the repository.
 
-### 执行步骤
+### Steps
 
-1. **搜索 YAML**：在 `mindspore/ops/op_def/yaml/`, `mindspore/ops/api_def/yaml/` 中搜索算子名
-2. **搜索 Infer**：在 `ops_func_impl` / `ops/infer` 目录搜索对应 infer 注册
-3. **搜索 PyBoost**：搜索 `class OPS_ASCEND_API {OpName}`
-4. **搜索 KBK**：搜索 `MS_ACLNN_KERNEL_FACTORY_REG({OpName}, ...)`, `MS_ACLNN_COMMON_KERNEL_FACTORY_REG({OpName}, ...)`
-5. **搜索 BPROP**：搜索 `REG_BPROP_BUILDER("{OpName}")`
-6. **搜索测试**：在 `tests/st/ops` 和`test/ut/cpp/ops` 下搜索算子名
-7. **搜索文档**：在 `docs/api/` 下搜索算子名
+1. **Search YAML**: search for the operator name under `mindspore/ops/op_def/yaml/` and `mindspore/ops/api_def/yaml/`
+2. **Search Infer**: search the corresponding Infer registration under `ops_func_impl` / `ops/infer`
+3. **Search PyBoost**: search for `class OPS_ASCEND_API {OpName}`
+4. **Search KBK**: search for `MS_ACLNN_KERNEL_FACTORY_REG({OpName}, ...)` and `MS_ACLNN_COMMON_KERNEL_FACTORY_REG({OpName}, ...)`
+5. **Search BPROP**: search for `REG_BPROP_BUILDER("{OpName}")`
+6. **Search tests**: search under `tests/st/ops` and `test/ut/cpp/ops`
+7. **Search documentation**: search under `docs/api/`
 
-### 输出模板
+### Output Template
 
 ```text
-算子存量检查：{OpName}
+Operator inventory check: {OpName}
 
-| 组件 | 状态 | 文件路径 | 备注 |
+| Component | Status | File Path | Notes |
 | ---- | ---- | -------- | ---- |
 | YAML (op_def) | ✅/❌ | ... | |
 | YAML (api_def) | ✅/❌ | ... | |
@@ -48,88 +48,88 @@
 | PyBoost | ✅/❌ | ... | |
 | KBK kernel | ✅/❌ | ... | |
 | BPROP | ✅/❌ | ... | |
-| 测试 (UT) | ✅/❌ | ... | |
-| 测试 (ST) | ✅/❌ | ... | |
-| 文档 (EN) | ✅/❌ | ... | |
-| 文档 (CN) | ✅/❌ | ... | |
+| Tests (UT) | ✅/❌ | ... | |
+| Tests (ST) | ✅/❌ | ... | |
+| Docs (EN) | ✅/❌ | ... | |
+| Docs (CN) | ✅/❌ | ... | |
 
-结论：{全新开发 / 需补齐xxx部分}
+Conclusion: {brand-new development / only xxx parts need to be added}
 ```
 
 ---
 
-## Pre-B：方案设计与对标分析
+## Pre-B: Solution Design And Reference Analysis
 
-分析 MS/PTA/ACLNN 的接口差异，决定原语/接口接入策略，**确定接入路径（路径 1 自动生成 / 路径 2 Customize）**，并初始化 Feature 文档。
+Analyze the differences between the MindSpore, PTA, and ACLNN interfaces, decide the primitive/interface integration strategy, **choose the integration path (Path 1 auto-generated / Path 2 Customize)**, and initialize the Feature document.
 
-### 执行步骤
+### Steps
 
-1. **PTA 源码审查（必做）**：审查 op-plugin 三类关键文件（详见 [`reference.md` 19 PTA 源码审查方法](reference.md#pta-source-review)）
-   - `op_plugin_functions.yaml`：函数签名、参数类型/默认值
-   - `derivatives.yaml`：反向注册、可微输入
-   - `XxxKernelNpuOpApi.cpp`：实际 ACLNN 调用、参数预处理
-   - 注意 PTA 是否有**同名接口重载**（同函数名、不同参数签名）
-   - **aclnn接口定义**: `aclnn_doc`中查找相关接口aclnn文档（如`aclnnAbs.md`）
-2. **接口分析五要素（必做）**（[`reference.md` 15.4.1 接口分析五要素](reference.md#api-analysis-five-factors)）：
-   - 功能 / 参数定义 / 数据类型是否一致
-   - **是否要新增原语**；**是新增接口还是复用原有接口**
-3. **确定 YAML 策略**（[`reference.md` 15.4.2 YAML 三种场景](reference.md#yaml-three-scenarios)）：
-   - yaml接口定义见`mindspore/ops/op_def/yaml/README.md`
-   - 已有 YAML + 复用原有原语 → 加 `dispatch` 字段
-   - 已有 YAML + 新增原语 → 新建 YAML 加 `_ext` 后缀
-   - 没有 YAML → 新建
-   - 若需修改已有原语参数签名 → 参考 MS 仓库相似算子处理方式，具体分析兼容性（[`reference.md` 15.4.4 修改已有原语参数签名与接口重载](reference.md#existing-primitive-signature-change)）
-   > 明确yaml与原语，函数接口关系:
-   > yaml与原语强绑定，定义的接口即生成原语接口。yaml流程同时也可自动生成函数接口，在接口中直接调用生成的原语的实例，简化实现。可通过yaml定义中的"function"相关field控制。原语与函数接口非强相关。
-   > 在后端接口与原语接口一致情况下，优先使用不带"Ext"后缀原语名。仅在当前已有同名原语且不能复用情况下，使用"Ext"后缀。在已有同名函数接口但无同名原语情况，仍优先使用不带"Ext"后缀原语名，区分原语和函数接口。
-4. **确定接入路径（核心决策）**（[`reference.md` 2.3 两条接入路径](reference.md#dispatch-path-selection)）：
-   - 分析 MindSpore API 参数能否**原样透传**给 ACLNN 接口
-   - **路径 1（自动生成）**：参数直通 → YAML 不写 `Ascend` 字段 → pyboost和aclnn kernelmod自动生成
-   - **路径 2（Customize）**：参数需预处理 → YAML 写 `Ascend: XxxAscend` → pyboost和aclnn kernelmod必须手写
-   - 常见需预处理的情况：标量提取、参数重排、输出手动分配
-   - **此决策直接决定后续整个开发工作量，必须在 Pre-B 阶段明确**
-   - yaml提供type_cast接口支持简单输入类型转换, 转换后如果参数与aclnn接口匹配仍可以走自动生成路径。
-5. **产出 PTA 差异记录**: 使用 `templates/pta-analysis-report.md` 模板, 生成文件（如 `{op_name}_pta_analysis.md`）
-
----
-
-## 🔒 Feature 文档初始化（Pre-B 完成后必须执行，不可跳过）
-
-> **这是评审和转测交付的必须产物。** 无论什么场景（前向/反向、单算子/组合、内部/公开），
-> 都必须生成 Feature 文档。如果跳过此步，后续将无法通过评审。
-
-### 执行步骤
-
-1. 从 `templates/feature-document.md` 复制一份，命名为 `{算子名}_Feature.md`
-2. 基于 Pre-B 的分析结果，填写以下章节：
-   - [1. 背景描述](../templates/feature-document.md#feature-background)
-   - [2. 标杆与接口](../templates/feature-document.md#feature-benchmark-api)
-   - [3. 任务清单](../templates/feature-document.md#feature-task-list)（标准 13 大类表格，初始化每项状态）
-   - [4. 功能与接口说明](../templates/feature-document.md#feature-functional-spec)（接口签名、参数说明）
-   - [6. 约束与类型](../templates/feature-document.md#feature-constraints)（设备、dtype、shape 约束）
-   - [8. 与 PTA 的差异与对齐](../templates/feature-document.md#feature-pta-alignment)（初始化版）
+1. **PTA source review (mandatory)**: review the three key file categories in `op-plugin` (see [`reference.md` 19 PTA Source Review Method](reference.md#pta-source-review))
+   - `op_plugin_functions.yaml`: function signatures, parameter types/defaults
+   - `derivatives.yaml`: backward registration and differentiable inputs
+   - `XxxKernelNpuOpApi.cpp`: actual ACLNN call and parameter preprocessing
+   - Check whether PTA has **overloads with the same name** but different signatures
+   - **ACLNN interface definition**: look up the corresponding ACLNN document in `aclnn_doc` (for example `aclnnAbs.md`)
+2. **Five-factor interface analysis (mandatory)** ([`reference.md` 15.4.1 Five-Factor Interface Analysis](reference.md#api-analysis-five-factors))
+   - Check whether functionality, parameter definitions, and dtypes match
+   - Decide **whether a new primitive is needed** and **whether to add a new interface or reuse an existing one**
+3. **Choose the YAML strategy** ([`reference.md` 15.4.2 Three YAML Scenarios](reference.md#yaml-three-scenarios))
+   - YAML interface definitions are described in `mindspore/ops/op_def/yaml/README.md`
+   - Existing YAML + reuse existing primitive -> add a `dispatch` field
+   - Existing YAML + new primitive -> create a new YAML with the `_ext` suffix
+   - No YAML exists -> create a new one
+   - If an existing primitive signature must be changed, refer to similar operators in the MindSpore repository and analyze compatibility in detail ([`reference.md` 15.4.4 Changing Existing Primitive Signatures And Interface Overloads](reference.md#existing-primitive-signature-change))
+   > Clarify the relationship among YAML, primitive, and function interface:
+   > YAML is tightly bound to the primitive, and the defined interface generates the primitive interface.
+   > The YAML flow can also auto-generate function interfaces that directly call the generated primitive instance, which simplifies implementation. This is controlled by the `function`-related fields in YAML.
+   > Primitive and function interfaces are related, but not strictly identical.
+   > When the backend interface and primitive interface match, prefer a primitive name **without** the `Ext` suffix. Use `Ext` only when a primitive with the same name already exists and cannot be reused. If a function interface with the same name already exists but no primitive does, still prefer the primitive name without `Ext`; primitives and function interfaces are distinct.
+4. **Choose the integration path (core decision)** ([`reference.md` 2.3 Two Integration Paths](reference.md#dispatch-path-selection))
+   - Determine whether the MindSpore API parameters can be **passed through unchanged** to the ACLNN interface
+   - **Path 1 (auto-generated)**: direct passthrough -> omit the `Ascend` field in YAML -> PyBoost and ACLNN kernelmod are auto-generated
+   - **Path 2 (Customize)**: parameters require preprocessing -> write `Ascend: XxxAscend` in YAML -> PyBoost and ACLNN kernelmod must be handwritten
+   - Common preprocessing cases: scalar extraction, argument reordering, manual output allocation
+   - **This decision determines the implementation workload for all later steps and must be finalized in Pre-B**
+   - YAML also supports `type_cast` for simple input type conversion. If the converted parameters then match the ACLNN interface, Path 1 can still be used.
+5. **Produce a PTA difference record**: use the `templates/pta-analysis-report.md` template and generate a file such as `{op_name}_pta_analysis.md`
 
 ---
 
-## Pre-C：ACLNN 调用链分析与子算子盘点（组合场景必做）
+## 🔒 Feature Document Initialization (Must Run After Pre-B, Cannot Be Skipped)
 
-> 仅当 PTA C++ 实现中使用**多个 ACLNN 小算子串联**时执行。
-> 仅调用单个 `aclnnXxx` 时跳过此步。
+> **This is a required review and test-handoff deliverable.** No matter the scenario, forward or backward, single operator or composite, internal or public, you must generate a Feature document. If you skip this step, later review will fail.
 
-### 执行步骤
+### Steps
 
-1. **提取 ACLNN 调用链**：从 PTA C++ 代码中提取前向+反向的全部
-   `EXEC_NPU_CMD` / `aclnnXxx` 调用（详见 [`reference.md` 22.2 调用链提取方法](reference.md#aclnn-callchain-extraction)）
-2. **盘点 MS 覆盖情况**：逐个搜索确认子算子是否已接入（[`reference.md` 22.3 MS 侧覆盖盘点方法](reference.md#ms-coverage-inventory)）
-3. **产出覆盖盘点表**（使用 `templates/aclnn-callchain-inventory.md` 模板）
-4. **规划实施顺序**：叶子算子先、组合算子后；按拓扑序（[`reference.md` 22.5 实施顺序原则](reference.md#callchain-rollout-order)）
+1. Copy `templates/feature-document.md` and name it `{operator_name}_Feature.md`
+2. Fill the following sections based on the Pre-B analysis results:
+   - [1. Background](../templates/feature-document.md#feature-background)
+   - [2. Benchmark And APIs](../templates/feature-document.md#feature-benchmark-api)
+   - [3. Task List](../templates/feature-document.md#feature-task-list) (initialize the standard 13-category table)
+   - [4. Functional And API Specification](../templates/feature-document.md#feature-functional-spec) (interface signature and parameter descriptions)
+   - [6. Constraints And Types](../templates/feature-document.md#feature-constraints) (device, dtype, and shape constraints)
+   - [8. Differences From PTA And Alignment Status](../templates/feature-document.md#feature-pta-alignment) (initial version)
 
 ---
 
-## 成功标准
+## Pre-C: ACLNN Call-Chain Analysis And Sub-Operator Inventory (Mandatory For Composite Scenarios)
 
-**⛔ HARD GATE：在进入 Step 1 之前，以下两项必须完成并交付给用户：**
-1. ✅ PTA 源码审查报告（Pre-B 产出，使用 `templates/pta-analysis-report.md` 模板）
-2. ✅ 已初始化 Feature 文档
+> Execute this only when PTA C++ uses **multiple smaller ACLNN operators chained together**.
+> Skip it if PTA directly calls a single `aclnnXxx`.
 
-**⚠️ "交付给用户"的含义：生成实际的 .md 文件到工作区，并告知用户文件路径。**
+### Steps
+
+1. **Extract the ACLNN call chain**: extract all forward and backward `EXEC_NPU_CMD` / `aclnnXxx` calls from the PTA C++ code (see [`reference.md` 22.2 Call-Chain Extraction Method](reference.md#aclnn-callchain-extraction))
+2. **Inventory MindSpore coverage**: search one by one to confirm whether each sub-operator has already been integrated ([`reference.md` 22.3 MindSpore Coverage Inventory Method](reference.md#ms-coverage-inventory))
+3. **Produce the coverage inventory** using `templates/aclnn-callchain-inventory.md`
+4. **Plan the rollout order**: leaves first, composite later; follow topological order ([`reference.md` 22.5 Rollout Ordering Principles](reference.md#callchain-rollout-order))
+
+---
+
+## Success Criteria
+
+**⛔ HARD GATE: before entering Step 1, the following two items must both be completed and delivered to the user:**
+1. ✅ PTA source review report (output of Pre-B, using `templates/pta-analysis-report.md`)
+2. ✅ Initialized Feature document
+
+**Important**: "delivered to the user" means generating real `.md` files in the workspace and explicitly telling the user their file paths.

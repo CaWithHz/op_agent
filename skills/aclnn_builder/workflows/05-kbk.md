@@ -1,106 +1,106 @@
-# Workflow 5: KBK（Graph, C++）
+# Workflow 5: KBK (Graph, C++)
 
-## 目标
+## Goal
 
-实现 Graph 模式下的 ACLNN kernel。
-**根据接入路径不同，本步骤工作量差异很大：**
-- **路径 1（自动生成）**：gen_ops.py 已自动生成，此步只需**验证**
-- **路径 2（Customize）**：需手写 kernel 文件（GetWorkSpaceInfo + Launch + 注册）
+Implement the ACLNN kernel for Graph mode.
+**The workload of this step differs greatly depending on the integration path:**
+- **Path 1 (auto-generated)**: `gen_ops.py` already generates the required pieces, so this step only needs **validation**
+- **Path 2 (Customize)**: you must handwrite the kernel files (`GetWorkSpaceInfo` + `Launch` + registration)
 
-## 输入
+## Inputs
 
-- **接入路径**：auto/customize
-- **YAML 定义**：参数列表
-- **PyBoost 实现**：可参考参数处理逻辑（路径 2）
-- **（组合场景）ACLNN 调用链**
+- **Integration path**: auto / customize
+- **YAML definition**: parameter list
+- **PyBoost implementation**: may be used as a reference for argument handling logic (Path 2)
+- **(Composite scenarios)** ACLNN call chain
 
-## 输出
+## Outputs
 
-- **路径 1**：验证自动注册代码正确
-- **路径 2**：手写 KBK kernel 文件 + 注册
-  - `op_name_aclnn_kernel.cc/.h`（前向）
-  - `op_name_grad_aclnn_kernel.cc/.h`（反向）
-  - `MS_ACLNN_KERNEL_FACTORY_REG` 注册
-
----
-
-## 执行步骤
-
-### 路径 1 分支：验证自动注册
-
-> 如果 Pre-B 确定为路径 1（参数直通），**不需要手写 KBK kernel 文件**。
-> gen_ops.py 已生成 `aclnn_kernel_register_auto.cc` 中的注册代码。
-
-1. **确认注册存在**：在自动生成的注册文件中搜索算子名，确认 `MS_ACLNN_COMMON_KERNEL_FACTORY_REG` 已注册
-2. 验证通过后，直接进入 [Workflow 6: BPROP](./06-bprop.md)
-
-> **如果验证发现自动注册有问题**，需要重新评估接入路径。
-
-### 路径 2 分支：手写 Kernel 文件
-
-#### Step 0：ACLNN 接口核对
-
-与 [04-pyboost.md Step 0](./04-pyboost.md#step-0aclnn-接口核对) 相同。若 Step 4（PyBoost）已完成核对，直接引用结论即可。
-
-#### Step 1：标准结构（[`reference.md` 6 KBK kernel 要点](reference.md#kbk-reference)）
-
-- `GetWorkSpaceInfo()`：取参 + `GetWorkspaceForResize`
-- `Launch()`：调用 `RunOp` 或等价执行路径
-- 注册：`MS_ACLNN_KERNEL_FACTORY_REG`
-
-### Step 2：强约束
-
-- 前向/反向**分文件、分注册**
-- 头/实现命名空间保持一致
-- 不要在 InferShape 中修改属性（[`reference.md` 13.1 禁止在 InferShape 中修改属性](reference.md#resize-launch-no-attr-mutation)）
-
-### Step 3：Resize/Launch 优化（[`reference.md` 13 Resize/Launch 优化要点](reference.md#resize-launch-optimization)）
-
-- 能在 Init 确定的放 Init
-- 与 shape 强相关的放 Resize
-- Launch 只做发射/调用
-- 无意义输出：覆写 `GetUseLessOutputIdx()`
-- 计算依赖输出：分配最大可能 + SyncOutputShape
-
-### Step 4：组合算子模式（Meta DSL 编程范式，[`reference.md` 23.2 KBK 拼接](reference.md#composite-kbk-pattern)）
-
-Meta DSL 通过 C++ 构图替代手动 `GetWorkSpaceInfo/Launch/RunOp`，框架自动处理类型推导和自动微分：
-1. 在 `mindspore/ccsrc/frontend/operator/meta_dsl/func_op/` 下新建 `.cc` 文件
-2. 使用 `REGISTER_FUNCTION_OP(OpName)` 注册算子（可选传入校验函数）
-3. 在 `BeginFunction(OpName, args...) { ... } EndFunction(OpName)` 中用 `Call(Prim(SubOp), ...)` 拼接小算子
-4. 框架自动处理多平台适配，**无需手写 KBK kernel 文件**
-
-代码骨架见 [`reference.md` 18.4 KBK kernel 骨架](reference.md#kbk-skeleton)（单算子）/ [`reference.md` 23.2 KBK 拼接](reference.md#composite-kbk-pattern)（Meta DSL），但**以仓库实际代码为最终参考**。
-
-### Step 5：View Host Kernel（当 YAML 标记 `graph_view: True` 时，[`reference.md` 26.4 KBK Host Kernel](reference.md#view-kbk-host-kernel)）
-
-当算子为 View 算子且需要支持 KBK 图模式 View 路径时：
-
-1. 在 YAML 中配置 `graph_view: True`
-2. 在 `ops/kernel/host/view/kernel_mod_impl/` 下新建 `{op_name}_view.cc/.h`
-3. 继承 `HostKernelMod`，实现 `GetWorkSpaceInfo` → 调用 strides 计算更新输出 `tensor_storage_info`
-4. 使用 `MS_HOST_REG_KERNEL({OpName}View, {OpName}View)` 注册
-5. **不走 ACLNN**，host kernel 直接操作 strides
-
-> ⚠️ 注册宏名（如 `MS_ACLNN_KERNEL_FACTORY_REG`）、基类、workspace 接口等
-> 可能随版本变化。务必先看 `kernel_mod_impl/` 下最新已有算子的写法。
+- **Path 1**: validated auto-registration
+- **Path 2**: handwritten KBK kernel files + registration
+  - `op_name_aclnn_kernel.cc/.h` (forward)
+  - `op_name_grad_aclnn_kernel.cc/.h` (backward)
+  - `MS_ACLNN_KERNEL_FACTORY_REG` registration
 
 ---
 
-## 成功标准
+## Steps
 
-**路径 1**：
-- [ ] 确认自动注册代码存在且算子名正确
+### Path 1 Branch: Validate The Auto-Registration
 
-**路径 2**：
-- [ ] KBK 前向 kernel 实现完成
-- [ ] KBK 反向 kernel 实现完成（如需要）
-- [ ] 注册宏正确，可在 Graph 模式下调度到
-- [ ] 组合场景：Meta DSL 拼接逻辑正确，或 workspace 管理正确（旧模式）
-- [ ] 前后向分文件
+> If Pre-B determined Path 1 (direct parameter passthrough), **you do not need to handwrite KBK kernel files**.
+> `gen_ops.py` already generates the registration code in `aclnn_kernel_register_auto.cc`.
 
-**View 算子**：
-- [ ] `graph_view: True` 已配置在 View 专用 YAML 中
-- [ ] Host kernel 实现正确（strides 更新 + `MS_HOST_REG_KERNEL` 注册）
+1. **Confirm the registration exists**: search the generated registration file for the operator name and confirm that `MS_ACLNN_COMMON_KERNEL_FACTORY_REG` is present
+2. After validation passes, continue directly to [Workflow 6: BPROP](./06-bprop.md)
+
+> **If auto-registration is wrong**, you need to reevaluate the integration path.
+
+### Path 2 Branch: Handwrite Kernel Files
+
+#### Step 0: Verify The ACLNN Interface
+
+This is the same as [04-pyboost.md Step 0](./04-pyboost.md#step-0-verify-the-aclnn-interface). If Step 4 (PyBoost) already confirmed the interface, reuse that conclusion directly.
+
+#### Step 1: Standard Structure ([`reference.md` 6 KBK Kernel Notes](reference.md#kbk-reference))
+
+- `GetWorkSpaceInfo()`: fetch arguments + call `GetWorkspaceForResize`
+- `Launch()`: call `RunOp` or the equivalent execution path
+- registration: `MS_ACLNN_KERNEL_FACTORY_REG`
+
+### Step 2: Hard Constraints
+
+- Forward and backward must use **separate files and separate registrations**
+- The header and implementation namespaces must stay consistent
+- Do not mutate attributes in `InferShape` ([`reference.md` 13.1 Do Not Mutate Attributes In InferShape](reference.md#resize-launch-no-attr-mutation))
+
+### Step 3: Resize/Launch Optimization ([`reference.md` 13 Resize/Launch Optimization Notes](reference.md#resize-launch-optimization))
+
+- Logic that can be fixed in `Init` should stay in `Init`
+- Logic strongly tied to shape should stay in `Resize`
+- `Launch` should only dispatch the real execution
+- For useless outputs, override `GetUseLessOutputIdx()`
+- For compute-dependent outputs, allocate the largest possible output and call `SyncOutputShape`
+
+### Step 4: Composite Operator Pattern (Meta DSL, [`reference.md` 23.2 KBK Composition](reference.md#composite-kbk-pattern))
+
+Meta DSL uses C++ graph construction instead of manual `GetWorkSpaceInfo` / `Launch` / `RunOp`, and the framework then handles type inference and autodiff automatically:
+1. create a new `.cc` file under `mindspore/ccsrc/frontend/operator/meta_dsl/func_op/`
+2. register the operator with `REGISTER_FUNCTION_OP(OpName)` and optionally pass a validation function
+3. inside `BeginFunction(OpName, args...) { ... } EndFunction(OpName)`, compose sub-operators with `Call(Prim(SubOp), ...)`
+4. the framework handles multi-platform adaptation automatically, so **no handwritten KBK kernel file is needed**
+
+Code skeletons are available in [`reference.md` 18.4 KBK Kernel Skeleton](reference.md#kbk-skeleton) for single operators and [`reference.md` 23.2 KBK Composition](reference.md#composite-kbk-pattern) for Meta DSL, but **the repository's current code remains the final reference**.
+
+### Step 5: View Host Kernel (When YAML Has `graph_view: True`, [`reference.md` 26.4 KBK Host Kernel](reference.md#view-kbk-host-kernel))
+
+When the operator is a View operator and must support the Graph-mode View path:
+
+1. add `graph_view: True` in YAML
+2. create `{op_name}_view.cc/.h` under `ops/kernel/host/view/kernel_mod_impl/`
+3. inherit from `HostKernelMod`, implement `GetWorkSpaceInfo`, and update the output `tensor_storage_info` through strides calculation
+4. register it with `MS_HOST_REG_KERNEL({OpName}View, {OpName}View)`
+5. **do not call ACLNN**; the host kernel operates directly on strides
+
+> Registration macro names such as `MS_ACLNN_KERNEL_FACTORY_REG`, base classes, and workspace APIs may vary across versions.
+> Always inspect the latest existing operators under `kernel_mod_impl/` first.
+
+---
+
+## Success Criteria
+
+**Path 1**:
+- [ ] Confirm the auto-registration exists and uses the correct operator name
+
+**Path 2**:
+- [ ] KBK forward kernel implementation is complete
+- [ ] KBK backward kernel implementation is complete (if needed)
+- [ ] Registration macro is correct and can dispatch in Graph mode
+- [ ] In composite scenarios, either the Meta DSL composition is correct or workspace handling is correct in the legacy pattern
+- [ ] Forward and backward are split across separate files
+
+**View operators**:
+- [ ] `graph_view: True` is configured in the View-specific YAML
+- [ ] The host kernel is implemented correctly (strides update + `MS_HOST_REG_KERNEL` registration)
 
 ---

@@ -1,71 +1,71 @@
-# AI 操作全过程记录
+# Full AI Operation Record
 
-> 本文档由使用 `mindspore-aclnn-operator-devflow` Skill 的 AI 在任务或阶段结束时产出，便于用户留痕、评审与后续排查。无需翻看历史对话即可了解 AI 如何完成任务。
+> This document is produced by the AI that used the `mindspore-aclnn-operator-devflow` skill at the end of a task or stage. It is intended for traceability, review, and later troubleshooting. Readers should be able to understand how the AI completed the task without reopening the conversation history.
 
-**建议文件名**：`ai_operation_record_{任务简述}_{日期}.md`（如 `ai_operation_record_xxx_op_pre_and_step1_20250227.md`）
+**Suggested filename**: `ai_operation_record_{task_summary}_{date}.md` (for example, `ai_operation_record_xxx_op_pre_and_step1_20250227.md`)
 
 ---
 
-## 1. 任务与执行依据
+## 1. Task And Execution Basis
 
-| 项 | 内容 |
+| Item | Content |
 | --- | --- |
-| **用户原始需求** | （简述用户的一句话或请求） |
-| **执行依据** | 本 skill 的哪条规则 / 哪个 workflow 步骤（如：开发前信息收集 + Workflow Pre + Step 1） |
-| **本阶段目标与产出** | （本会话要达成的目标及交付物） |
-| **产出时间** | （日期或会话结束时间） |
+| **Original user request** | (Summarize the user's request in one sentence) |
+| **Execution basis** | Which rule in this skill or which workflow step was followed (for example: pre-development information gathering + Workflow Pre + Step 1) |
+| **Goal and deliverables for this stage** | (What this session aimed to complete and what it delivered) |
+| **Produced at** | (Date or session end time) |
 
 ---
 
-## 2. 待办列表及完成情况
+## 2. Todo List And Completion Status
 
-（与 TodoWrite 中的待办对应；未用工具时可在此手列）
+(Corresponds to the items in TodoWrite; if no tool was used, list them manually here.)
 
-| 序号 | 待办项 | 状态 | 备注 |
+| No. | Todo Item | Status | Notes |
 | --- | --- | --- | --- |
-| 1 | （如）Pre：前置检查 | ✅ 已完成 / ⏳ 进行中 / ❌ 未做 | |
-| 2 | （如）Feature 文档初始化 | ✅ / ⏳ / ❌ | |
-| 3 | … | | |
+| 1 | (Example) Pre: pre-checks | ✅ Done / ⏳ In progress / ❌ Not done | |
+| 2 | (Example) Feature document initialization | ✅ / ⏳ / ❌ | |
+| 3 | ... | | |
 
 ---
 
-## 3. 每步关键操作
+## 3. Key Actions At Each Step
 
-（按时间或按 workflow 顺序，逐条记录：做了什么、读了/改了哪些文件、结论或验证结果。）
+(Record step by step, either by time or by workflow order: what was done, which files were read or edited, and what conclusions or validation results were obtained.)
 
-### 3.1 （步骤名，如 Pre-A 存量检查）
+### 3.1 (Step name, for example Pre-A inventory check)
 
-- **操作**：搜索了 xxx、阅读了 xxx 文件
-- **涉及文件/目录**：`path/to/file`
-- **结论/证据**：（关键片段或结论）
-- **验证方式与结果**：（如有）
+- **Action**: searched for xxx, read xxx files
+- **Files/directories involved**: `path/to/file`
+- **Conclusion/evidence**: (Key excerpts or conclusions)
+- **Validation method and result**: (if any)
 
-### 3.2 （下一步，如 Pre-B 方案设计）
+### 3.2 (Next step, for example Pre-B solution design)
 
-- **操作**：…
-- **涉及文件/目录**：…
-- **结论/证据**：…
-- **验证方式与结果**：…
+- **Action**: ...
+- **Files/directories involved**: ...
+- **Conclusion/evidence**: ...
+- **Validation method and result**: ...
 
-### （后续步骤同理）
+### (Follow the same pattern for later steps)
 
 ---
 
-## 4. 产出物清单
+## 4. Deliverables
 
-| 产出类型 | 路径或说明 |
+| Deliverable Type | Path Or Description |
 | --- | --- |
-| 新增/修改文件 | `mindspore/ops/op_def/yaml/xxx_op.yaml` 等 |
-| 文档 | Feature 文档路径、PTA 审查报告路径等 |
-| 脚本 | （如）验证脚本、探测脚本路径 |
+| New/modified files | `mindspore/ops/op_def/yaml/xxx_op.yaml`, etc. |
+| Documents | Feature document path, PTA review report path, and so on |
+| Scripts | (For example) validation scripts or probing scripts |
 
 ---
 
-## 5. 遗留问题与下一步
+## 5. Remaining Issues And Next Step
 
-- **遗留问题**：（需用户确认的、未完成或待设备验证的项）
-- **下一步建议**：（用户或下一会话应执行的动作）
+- **Remaining issues**: (Items that require user confirmation, are unfinished, or still need device-side validation)
+- **Recommended next step**: (What the user or the next session should do)
 
 ---
 
-*（以上各节由 AI 在任务结束时按实际执行情况填写，可增删小节。）*
+*(All sections above should be filled by the AI based on the real execution at task end. Sections may be added or removed as needed.)*
